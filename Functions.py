@@ -5,6 +5,7 @@ import pandasql as ps
 import numpy as np
 import gzip, os, csv
 import datetime
+import matplotlib.pyplot as plt
 #want a function to get me a gvkey
 
 def hhi_calculator(x, y, c, df):
