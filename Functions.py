@@ -8,7 +8,7 @@ import datetime
 import matplotlib.pyplot as plt
 #want a function to get me a gvkey
 
-def hhi_calculator(x, y, c, df):
+def hhi_calculator(x, y, c, df, options=0, denominators=[],selection=[]):
     tt = [i + '_temp' for i in x]
     for i in x:
         df[i + '_temp'] = (df[i]/df[y])**2
@@ -16,20 +16,18 @@ def hhi_calculator(x, y, c, df):
     df[c] = (df[c]-(1/len(tt)))/(1-(1/len(tt)))
     return df.drop(tt, axis=1)
 
-def pct_calculator(x, y, name, df):
+def pct_calculator(x, y, name, df, options=0, denominators=[], selection=[]):
     for i in x:
         df[i + name] = (df[i]/df[y])
     return df
 
 
-
-
-def plot_maker(a, c, b=[], save=[0], year=1986, method='mean'):
+def plot_maker(a, c, b=[], save=[0], year=1986, method='mean', label=0):
     """Functions takes and makes plots"""
     #a = variable to plot
     #b = group by, list with the columns want to use to group by
     #c = dataset
-    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'b', 'w']
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'black','palegreen']
     color_code = 0
 
     if len(a) > 1:
@@ -61,7 +59,10 @@ def plot_maker(a, c, b=[], save=[0], year=1986, method='mean'):
             plt.plot(series_temp_1['fyear'], series_temp_1[a], color=colors[color_code], label=i)
             color_code +=1
 
-    if save[0] == 1:
+    if save[0] == 1 and label == 0:
+        plt.savefig(os.path.join(save[1], save[2]))
+    if save[0] == 1 and label == 1:
+        plt.legend()
         plt.savefig(os.path.join(save[1], save[2]))
     plt.legend()
     plt.show()
@@ -69,3 +70,45 @@ def plot_maker(a, c, b=[], save=[0], year=1986, method='mean'):
     del series_temp
     del series_temp_1
     return None
+
+
+def rating_grps(data):
+    ratings = ['AAA+', 'AAA', 'AAA-', 'AA+', 'AA', 'AA-', 'A+', 'A', 'A-', 'A-', 'BBB+', 'BBB', 'BBB-',
+               'BB+', 'BB', 'BB-', 'B+', 'B', 'B-', 'CCC+', 'CCC', 'CCC-', 'CC+', 'CC', 'CC-', 'C']
+    ig = ['AAA+', 'AAA', 'AAA-', 'AA+', 'AA', 'AA-', 'A+', 'A', 'A-', 'BBB+', 'BBB', 'BBB-']
+    hig = ['AAA+', 'AAA', 'AAA-', 'AA+', 'AA', 'AA-']
+    lig = ['A+', 'A', 'A-', 'A-''BBB+', 'BBB', 'BBB-']
+    hjunk = ['BB+', 'BB', 'BB-']
+    lj = ['B+', 'B', 'B-', 'CCC+', 'CCC', 'CCC-', 'CC+', 'CC', 'CC-', 'C']
+    junk = ['BB+', 'BB', 'BB-', 'B+', 'B', 'B-', 'CCC+', 'CCC', 'CCC-', 'CC+', 'CC', 'CC-', 'C']
+    D = ['D', 'SD']
+    rated = ['rated', 'INVGRADE', 'JUNK', 'HJUNK', 'LJUNK', 'HIG', 'LIG', 'D']
+
+    AAA = ['AAA+', 'AAA', 'AAA-']
+    AA = ['AA+', 'AA', 'AA-']
+    A = ['A+', 'A', 'A-']
+    BBB = ['BBB+', 'BBB', 'BBB-']
+    BB = ['BB+', 'BB', 'BB-']
+    B = ['B+', 'B', 'B-']
+    C = ['CCC+', 'CCC', 'CCC-', 'CC+', 'CC', 'CC-', 'C']
+    groups = [ratings, ig, hig, lig, junk, hjunk, lj, AAA, AA, A, BBB, BB, B, C, D]
+    names = ['RATED', 'INVGRADE', 'HIG', 'LIG', 'JUNK', 'HJUNK', 'LJUNK', 'AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'C', 'D']
+    groups = [AAA, AA, A, BBB, BB, B, C, D]
+    names = ['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'C']
+
+    for index, elem in enumerate(names):
+        print(elem)
+        print(index)
+        print(groups[index])
+        data[elem] = [1 if x in groups[index] else 0 for x in data['splticrm']]
+    return data
+
+
+def rename(data, list1, list2, options=0):
+    print("hello")
+    for index, elem in enumerate(list1):
+        if options == 0:
+            data.rename(columns={elem: list2[index]}, inplace=True)
+        else:
+            data.rename(index={elem: list2[index]}, inplace=True)
+    return data
