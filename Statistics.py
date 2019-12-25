@@ -2,10 +2,6 @@
 #correct erase later#
 
 
-FUNDABS['income_std_12_at'] = FUNDABS['income_std_12']/FUNDABS['at']
-FUNDABS['income_std_9_at'] = FUNDABS['income_std_9']/FUNDABS['at']
-FUNDIQ['income_std_12_at'] = FUNDIQ['income_std_12']/FUNDIQ['at']
-FUNDIQ['income_std_9_at'] = FUNDIQ['income_std_9']/FUNDIQ['at']
 
 FUNDABSIQ = FUNDABS[FUNDABS.fyear>2001]
 FUNDABSN = FUNDABS[FUNDABS.fyear>=1969]

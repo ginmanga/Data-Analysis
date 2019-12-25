@@ -7,12 +7,13 @@ import datetime
 import matplotlib.pyplot as plt
 import Functions
 import importlib
-
+########################################
 FUNDABS = 0
-ratings = ['C','B','BB','BBB','A','AA', 'AAA']
-ratings_1 = ['UR', 'C','B','BB','BBB','A','AA', 'AAA']
-ratings_g = ['UR','LJUNK','HJUNK','LIG','HIG']
-
+FUNDABS_desc = 0
+ratings = ['C', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA']
+ratings_1 = ['UR', 'C', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA']
+ratings_g = ['UR', 'LJUNK', 'HJUNK','LIG', 'HIG']
+########################################
 
 
 FUNDABS[['HH1', 'HH2']].mean()
@@ -35,22 +36,37 @@ a = ['SUB_CPCT', 'SBN_CPCT', 'BD_CPCT', 'CL_CPCT', 'SHORT_CPCT']
 aa = ['SUBNOTCONV_CPCT','SUBCONV_CPCT','CONV_CPCT', 'DD_CPCT', 'DN_CPCT', 'BD_CPCT', 'CL_CPCT','SHORT_CPCT']
 b = ['UR','LJUNK','HJUNK','LIG','HIG']
 bb = ['C','B','BB','BBB','A','AA', 'AAA']
-bbb = ['UR', 'C','B','BB','BBB','A','HIG']
+bbb = ['UR', 'C', 'B', 'BB', 'BBB', 'A', 'HIG']
 bbbb = ['B','BB','BBB','A']
-b5 = ['UR','B','BB','BBB','A','HIG']
+b5 = ['UR', 'B', 'BB', 'BBB', 'A', 'HIG']
 
-Functions.plot_maker(['HH1', 'HH2'], FUNDABS_desc, b=[], save=[0, dir_plots, "HHICA"], year = 1969, method='mean')
-Functions.plot_maker(['HH1'], FUNDABS_desc, ratings_g,  save=[0, dir_plots, "title"], year = 1986, method='mean')
-Functions.plot_maker(['HH2'], FUNDABS_desc, ratings_g,  save=[0, dir_plots, "title"], year = 1986, method='mean')
+Functions.plot_maker(['HH1', 'HH2'], FUNDABS_desc, b=[], save=[0, dir_plots, "HHICA"], year=1969, method='mean')
+Functions.plot_maker(['HH1'], FUNDABS_desc, ratings_g,  save=[0, dir_plots, "title"], year=1986, method='mean')
+Functions.plot_maker(['HH2'], FUNDABS_desc, ratings_g,  save=[1, dir_plots, "5CATRATING"], year=1986, method='mean', label=1)
 
-Functions.plot_maker(['HH1'], FUNDABS_desc, b5,  save=[0, dir_plots, "title"], year = 1986, method='mean')
-Functions.plot_maker(['HH2'], FUNDABS_desc, b5,  save=[0, dir_plots, "title"], year = 1986, method='mean')
+Functions.plot_maker(['HH1'], FUNDABS_desc, b5,  save=[0, dir_plots, "title"], year=1986, method='mean')
+Functions.plot_maker(['HH1'], FUNDABS_desc, bbb,  save=[0, dir_plots, "title"], year=1986, method='mean')
+Functions.plot_maker(['HH2'], FUNDABS_desc, b5,  save=[0, dir_plots, "title"], year=1986, method='mean')
+Functions.plot_maker(['HH2'], FUNDABS_desc, b,  save=[0, dir_plots, "title"], year=1986, method='mean')
 
+FUNDABSC = FUNDABS[FUNDABS.C == 1]
+FUNDABSB = FUNDABS[FUNDABS.B == 1]
+FUNDABSBB = FUNDABS[FUNDABS.BB == 1]
+FUNDABSBBB = FUNDABS[FUNDABS.BBB == 1]
 
-FUNDABS[bb].groupby(FUNDABS['fyear']).sum()
+ratings = ['D', 'C', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA']
+FUNDABSS = FUNDABS_desc[FUNDABS_desc.fyear>=1986]
+FUNDABSS[['UR', 'D', 'C', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA']].groupby(FUNDABSS['fyear']).sum()
 
-Functions.plot_maker(a, FUNDABS[FUNDABS.UR == 1], b=[],  save=[0, dir_plots, "title"], method='mean', year = 1986)
-Functions.plot_maker(a, FUNDABS[FUNDABS.UR == 1], b=[],  save=[0, dir_plots, "title"], method='median', year = 1986)
+FUNDABSC['HH2'].groupby(FUNDABSC['fyear']).sum()
+FUNDABSB['HH2'].groupby(FUNDABSB['fyear']).mean()
+FUNDABSBB['HH2'].groupby(FUNDABSBB['fyear']).mean()
+FUNDABSBBB['HH2'].groupby(FUNDABSBBB['fyear']).mean()
+
+Functions.plot_maker(a, FUNDABS[FUNDABS.UR == 1], b=[],  save=[0, dir_plots, "title"], method='mean', year=1986)
+Functions.plot_maker(a, FUNDABS[FUNDABS.B == 1], b=[],  save=[0, dir_plots, "title"], method='mean', year=1986)
+Functions.plot_maker(a, FUNDABS[FUNDABS.BB == 1], b=[],  save=[0, dir_plots, "title"], method='mean', year=1986)
+Functions.plot_maker(a, FUNDABS[FUNDABS.BBB == 1], b=[],  save=[0, dir_plots, "title"], method='mean', year=1986)
 Functions.plot_maker(a, FUNDABS[FUNDABS.HIG == 1], b=[],  save=[0, dir_plots, "title"], method='mean', year = 1986)
 Functions.plot_maker(a, FUNDABS[FUNDABS.LIG == 1], b=[],  save=[0, dir_plots, "title"], method='mean', year = 1986)
 Functions.plot_maker(a, FUNDABS[FUNDABS.HJUNK == 1], b=[],  save=[0, dir_plots, "title"], method='mean', year = 1986)
@@ -72,13 +88,6 @@ FUNDABS_5 = FUNDABS[(FUNDABS['fyear'] >= 2010 ) & (FUNDABS['fyear'] < 2018)]
 FUNDABS_6 = FUNDABS[(FUNDABS['fyear'] >= 1986 ) & (FUNDABS['fyear'] < 1990)]
 FUNDABS_6 = FUNDABS[(FUNDABS['fyear'] >= 1986 ) & (FUNDABS['fyear'] < 1990)]
 
-FUNDABS[['HH2_C', 'HH4_C']].describe()
-FUNDABS[['OTHERA2_CPCT']].describe()
-i = FUNDABS_1[['HH2_C', 'HH4_C']].describe()
-ii = FUNDABS_2[['HH2_C', 'HH4_C']].describe()
-iii = FUNDABS_3[['HH2_C', 'HH4_C']].describe()
-iv = FUNDABS_4[['HH2_C', 'HH4_C']].describe()
-v = FUNDABS_5[['HH2_C', 'HH4_C']].describe()
 
 combo = [i,ii,iii,iv,v]
 result = pd.concat(combo, axis=1)
