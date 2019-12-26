@@ -20,16 +20,37 @@ FUNDIQ_descreg['HH1'] = np.where(FUNDIQ_descreg.HH2.isnull(), np.NaN, FUNDIQ_des
 FUNDIQ_descreg['HH1_IQ'] = np.where(FUNDIQ_descreg.HH1.isnull(), np.NaN, FUNDIQ_descreg['HH1_IQ'])
 FUNDIQ_descreg['HH2_IQ'] = np.where(FUNDIQ_descreg.HH1.isnull(), np.NaN, FUNDIQ_descreg['HH2_IQ'])
 
+FUNDIQ_descregU = FUNDIQ_descreg[FUNDIQ_descreg.UR == 1]
+FUNDIQ_descregR = FUNDIQ_descreg[FUNDIQ_descreg.UR == 0]
 
-
+liste = ['HH1_IQ', 'HH2_IQ', 'HH2', 'HH1']
+def make_exog(data, liste):
+    for index, elem in liste:
+        name = 'nonexog' + str(index + 1)
+    name = data[elem]
+    list
+    return
 non_exog1 = FUNDIQ_descreg['HH1_IQ']
 non_exog2 = FUNDIQ_descreg['HH2_IQ']
 non_exog3 = FUNDIQ_descreg['HH2']
 non_exog4 = FUNDIQ_descreg['HH1']
 
+non_exog1 = FUNDIQ_descregU['HH1_IQ']
+non_exog2 = FUNDIQ_descregU['HH2_IQ']
+non_exog3 = FUNDIQ_descregU['HH2']
+non_exog4 = FUNDIQ_descregU['HH1']
+
+non_exog1 = FUNDIQ_descregR['HH1_IQ']
+non_exog2 = FUNDIQ_descregR['HH2_IQ']
+non_exog3 = FUNDIQ_descregR['HH2']
+non_exog4 = FUNDIQ_descregR['HH1']
+
 
 exog_vars_cut = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'RD_cut_lag',
                  'income_std_12_cut_lag', 'UR_lag']
+
+exog_vars_cut = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'RD_cut_lag',
+                 'income_std_12_cut_lag']
 
 exog_vars_cut = ['size_cut_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'RD_cut_lag',
                  'income_std_12_cut_lag', 'C_lag', 'B_lag', 'BB_lag', 'BBB_lag', 'A_lag', 'HIG_lag']
@@ -46,31 +67,34 @@ exog_vars_cut = ['size', 'MVBook_cut', 'PROF_cut', 'DIVP', 'TANG_cut', 'RD_cut',
                  'UR', 'BLEV', 'AP_cut']
 
 exog_cut = sm.add_constant(FUNDIQ_descreg[exog_vars_cut])
-exog_cut = sm.add_constant(FUNDIQ_descreg[exog_vars_cut1])
-exog_cut = sm.add_constant(FUNDIQ_descreg[exog_vars_cut2])
-exog_cut3 = sm.add_constant(FUNDIQ_descreg[exog_vars_cut3])
+exog_cut = sm.add_constant(FUNDIQ_descregU[exog_vars_cut])
+exog_cut = sm.add_constant(FUNDIQ_descregR[exog_vars_cut])
 
-exog_cut_2 = FUNDIQ_descreg[exog_vars_cut]
+exog_cut1 = sm.add_constant(FUNDIQ_descreg[exog_vars_cut1])
+
+
 
 
 mod2 = PanelOLS(non_exog1, exog_cut, entity_effects=True, time_effects=True)
-clust_entity1 = mod2.fit(cov_type='clustered', clusters=FUNDIQ_descreg.gvkey)
+clust_entity5 = mod2.fit(cov_type='clustered', clusters=FUNDIQ_descreg.gvkey)
 model1 = mod2.fit()
 
 mod2 = PanelOLS(non_exog2, exog_cut, entity_effects=True, time_effects=True)
-clust_entity2 = mod2.fit(cov_type='clustered', clusters=FUNDIQ_descreg.gvkey)
+clust_entity6 = mod2.fit(cov_type='clustered', clusters=FUNDIQ_descreg.gvkey)
 model2 = mod2.fit()
 
 mod2 = PanelOLS(non_exog3, exog_cut, entity_effects=True, time_effects=True)
-clust_entity3 = mod2.fit(cov_type='clustered', clusters=FUNDIQ_descreg.gvkey)
+clust_entity7 = mod2.fit(cov_type='clustered', clusters=FUNDIQ_descreg.gvkey)
 model3 = mod2.fit()
 
 mod2 = PanelOLS(non_exog4, exog_cut, entity_effects=True, time_effects=True)
-clust_entity4 = mod2.fit(cov_type='clustered', clusters=FUNDIQ_descreg.gvkey)
+clust_entity8 = mod2.fit(cov_type='clustered', clusters=FUNDIQ_descreg.gvkey)
 model4 = mod2.fit()
 
 # print(compare({'1': model1, '2': model2, '3': model3, '4': model4}))
 print(compare({'1': clust_entity1, '2': clust_entity2, '3': clust_entity3, '4': clust_entity4}))
+print(compare({'1': clust_entity5, '2': clust_entity6, '3': clust_entity7, '4': clust_entity8}))
+
 
 print(compare({'1': clust_entity1, '2': clust_entity2, '3': model1, '4': model2}))
 
@@ -78,36 +102,3 @@ clust_entity1.params
 clust_entity1.pvalues
 
 #COMPUSTAT
-
-exog_vars_cut1 = ['size_cut_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'RD_cut_lag',
-                 'income_std_4_cut_lag', 'UR_lag']
-
-exog_vars_cut = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'RD_cut_lag',
-                 'income_std_4_cut_lag']
-exog_vars_cut1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'RD_cut_lag',
-                 'income_std_4_cut_lag', 'UR_lag']
-
-non_exog3_c = FUNDABS_descreg['HH2']
-non_exog4_c = FUNDABS_descreg['HH1']
-exog_cut_c = sm.add_constant(FUNDABS_descreg[exog_vars_cut])
-exog_cut_c1 = sm.add_constant(FUNDABS_descreg[exog_vars_cut1])
-
-mod2 = PanelOLS(non_exog3_c, exog_cut_c, entity_effects=True, time_effects=True)
-clust_entity1_c = mod2.fit(cov_type='clustered', clusters=FUNDABS_descreg.gvkey)
-model1 = mod2.fit()
-
-mod2 = PanelOLS(non_exog4_c, exog_cut_c, entity_effects=True, time_effects=True)
-clust_entity2_c = mod2.fit(cov_type='clustered', clusters=FUNDABS_descreg.gvkey)
-model2 = mod2.fit()
-
-mod2 = PanelOLS(non_exog3_c, exog_cut_c1, entity_effects=True, time_effects=True)
-clust_entity3_c = mod2.fit(cov_type='clustered', clusters=FUNDABS_descreg.gvkey)
-model3 = mod2.fit()
-
-mod2 = PanelOLS(non_exog4_c, exog_cut_c1, entity_effects=True, time_effects=True)
-clust_entity4_c = mod2.fit(cov_type='clustered', clusters=FUNDABS_descreg.gvkey)
-model4 = mod2.fit()
-
-print(compare({'1': clust_entity1_c, '2': clust_entity2_c, '3': clust_entity3_c, '4': clust_entity4_c}))
-
-

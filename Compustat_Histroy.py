@@ -42,7 +42,7 @@ b5 = ['UR', 'B', 'BB', 'BBB', 'A', 'HIG']
 
 Functions.plot_maker(['HH1', 'HH2'], FUNDABS_desc, b=[], save=[0, dir_plots, "HHICA"], year=1969, method='mean')
 Functions.plot_maker(['HH1'], FUNDABS_desc, ratings_g,  save=[0, dir_plots, "title"], year=1986, method='mean')
-Functions.plot_maker(['HH2'], FUNDABS_desc, ratings_g,  save=[1, dir_plots, "5CATRATING"], year=1986, method='mean', label=1)
+Functions.plot_maker(['HH2'], FUNDABS_desc, ratings_g,  save=[1, dir_plots, "5CATRATING2002"], year=2002, method='mean', label=1)
 
 Functions.plot_maker(['HH1'], FUNDABS_desc, b5,  save=[0, dir_plots, "title"], year=1986, method='mean')
 Functions.plot_maker(['HH1'], FUNDABS_desc, bbb,  save=[0, dir_plots, "title"], year=1986, method='mean')
