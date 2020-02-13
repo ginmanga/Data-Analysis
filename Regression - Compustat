@@ -20,8 +20,6 @@ FUNDABS_lag = pd.read_csv(os.path.join(datadirectory, "FUNDABS_lag-Feb1.csv.gz")
 FUNDABS_descreg = FUNDABS_lag
 
 
-
-
 FUNDABS_descreg['C/B'] = FUNDABS_descreg['LJUNK']
 FUNDABS_descreg['BBB/A'] = FUNDABS_descreg['LIG']
 FUNDABS_descreg['AA/AAA'] = FUNDABS_descreg['HIG']
@@ -29,21 +27,19 @@ FUNDABS_descreg['HHI-C8'] = FUNDABS_descreg['HH1']
 FUNDABS_descreg['HHI-C5'] = FUNDABS_descreg['HH2']
 
 # FUNDABS_descreg = FUNDABS_lag[FUNDABS_lag.fyear > 2001]
-FUNDABS_descreg = FUNDABS_descreg.sort_values(by=['FF48', 'fyear'])
+
 
 
 
 
 #Size Quintiles
 
-Size_1 = FUNDABS_descreg.groupby(['fyear'])[['at']].quantile(0.2)
-Size_2 = FUNDABS_descreg.groupby(['fyear'])[['at']].quantile(0.4)
-Size_3 = FUNDABS_descreg.groupby(['fyear'])[['at']].quantile(0.6)
-Size_4 = FUNDABS_descreg.groupby(['fyear'])[['at']].quantile(0.8)
-Size_5 = FUNDABS_descreg.groupby(['fyear'])[['at']].quantile(1)
+Size_1 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(0.2)
+Size_2 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(0.4)
+Size_3 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(0.6)
+Size_4 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(0.8)
+Size_5 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(1)
 
-
-Size_6 = FUNDABS_desc.groupby(['fyear'])[['at']].quantile(0.95)
 
 FUNDABS_descreg['Size_1'] = 0
 FUNDABS_descreg['Size_2'] = 0
@@ -51,20 +47,20 @@ FUNDABS_descreg['Size_3'] = 0
 FUNDABS_descreg['Size_4'] = 0
 FUNDABS_descreg['Size_5'] = 0
 
-def size_sort2(x):
-    if x['at'] <= Size_1.loc[x['fyear']][0]:
+def size_sort2(x, y):
+    if x[y] <= Size_1.loc[x['fyear']][0]:
         x['Size_1'] = 1
-    if Size_1.loc[x['fyear']][0] < x['at'] <= Size_2.loc[x['fyear']][0]:
+    if Size_1.loc[x['fyear']][0] < x[y] <= Size_2.loc[x['fyear']][0]:
         x['Size_2'] = 1
-    if Size_2.loc[x['fyear']][0] < x['at'] <= Size_3.loc[x['fyear']][0]:
+    if Size_2.loc[x['fyear']][0] < x[y] <= Size_3.loc[x['fyear']][0]:
         x['Size_3'] = 1
-    if Size_3.loc[x['fyear']][0] < x['at'] <= Size_4.loc[x['fyear']][0]:
+    if Size_3.loc[x['fyear']][0] < x[y] <= Size_4.loc[x['fyear']][0]:
         x['Size_4'] = 1
-    if x['at'] > Size_4.loc[x['fyear']][0]:
+    if x[y] > Size_4.loc[x['fyear']][0]:
         x['Size_5'] = 1
     return x
 
-FUNDABS_descreg = FUNDABS_descreg.apply(lambda row: size_sort2(row), axis=1)
+FUNDABS_descreg = FUNDABS_descreg.apply(lambda row: size_sort2(row, 'AT_cut'), axis=1)
 
 FUNDABS_descreg['Q1'] = FUNDABS_descreg['Size_1']
 FUNDABS_descreg['Q2'] = FUNDABS_descreg['Size_2']
@@ -72,16 +68,36 @@ FUNDABS_descreg['Q3'] = FUNDABS_descreg['Size_3']
 FUNDABS_descreg['Q4'] = FUNDABS_descreg['Size_4']
 FUNDABS_descreg['Q5'] = FUNDABS_descreg['Size_5']
 
-
-
-
-
-
+FUNDABS_descreg = FUNDABS_descreg.sort_values(by=['FF48', 'fyear'])
+FUNDABS_descreg7989 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1978]
+FUNDABS_descreg7989 = FUNDABS_descreg7989[FUNDABS_descreg7989.fyear < 1990]
+FUNDABS_descreg9099 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1989]
+FUNDABS_descreg9099 = FUNDABS_descreg9099[FUNDABS_descreg9099.fyear < 2000]
+FUNDABS_descreg0009 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1999]
+FUNDABS_descreg0009 = FUNDABS_descreg0009[FUNDABS_descreg0009.fyear < 2010]
+FUNDABS_descreg1018 = FUNDABS_descreg[FUNDABS_descreg.fyear > 2009]
+FUNDABS_descreg1018 = FUNDABS_descreg1018[FUNDABS_descreg1018.fyear < 2019]
 #Turn to panel
+FUNDABS = FUNDABS_descreg
+year = pd.Categorical(FUNDABS.fyear)
+FUNDABS = FUNDABS.set_index(['FF48', 'fyear'])
+FUNDABS['year'] = year
 
-year = pd.Categorical(FUNDABS_descreg.fyear)
-FUNDABS_descreg = FUNDABS_descreg.set_index(['FF48', 'fyear'])
-FUNDABS_descreg['year'] = year
+year = pd.Categorical(FUNDABS_descreg7989.fyear)
+FUNDABS_descreg7989 = FUNDABS_descreg7989.set_index(['FF48', 'fyear'])
+FUNDABS_descreg7989['year'] = year
+
+year = pd.Categorical(FUNDABS_descreg9099.fyear)
+FUNDABS_descreg9099 = FUNDABS_descreg9099.set_index(['FF48', 'fyear'])
+FUNDABS_descreg9099['year'] = year
+
+year = pd.Categorical(FUNDABS_descreg0009.fyear)
+FUNDABS_descreg0009 = FUNDABS_descreg0009.set_index(['FF48', 'fyear'])
+FUNDABS_descreg0009['year'] = year
+
+year = pd.Categorical(FUNDABS_descreg1018.fyear)
+FUNDABS_descreg1018 = FUNDABS_descreg1018.set_index(['FF48', 'fyear'])
+FUNDABS_descreg1018['year'] = year
 
 
 
