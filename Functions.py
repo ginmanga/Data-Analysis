@@ -179,8 +179,6 @@ def winsor_old(data, column=[], cond_list=[], cond_num=[], quantiles=[0.99, 0.01
         data = data.drop('temp2', axis=1)
     return data
 
-
-
 def winsor(data, column=[], cond_list=[], cond_num=[], quantiles=[0.99, 0.01], year=1968, freq='annual', options=1):
     """function to winsorize"""
     # print(year)
@@ -260,6 +258,63 @@ def run_regressions(dataa, datab, endog1, endog2, exog1, exog2, options=0):
         results.append(mod.fit(cov_type='clustered', clusters=datab.gvkey))
     return results
 
+def run_regressions_a(dataa, datab, datac, endog1, endog2, endog3, exog1, exog2, exog3, options=0):
+    results = []
+    print(endog1)
+    for index, elem in enumerate(endog1):
+        name = 'endog1' + '_' + str(index)
+        exog = sm.add_constant(dataa[exog1])
+        if options == 0:
+            #mod = PanelOLS(dataa[elem], dataa[exog1], entity_effects=True, time_effects=True)
+            mod = PanelOLS(dataa[elem], exog, entity_effects=True, time_effects=True)
+        if options == 1:
+            mod = PanelOLS(dataa[elem], exog, entity_effects=False, time_effects=True)
+        results.append(mod.fit(cov_type='clustered', clusters=dataa.gvkey))
+    for index, elem in enumerate(endog2):
+        name = 'endog2' + '_' + str(index)
+        exog = sm.add_constant(datab[exog2])
+        if options == 0:
+            mod = PanelOLS(datab[elem], exog, entity_effects=True, time_effects=True)
+        if options == 1:
+            mod = PanelOLS(datab[elem], exog, entity_effects=False, time_effects=True)
+        results.append(mod.fit(cov_type='clustered', clusters=datab.gvkey))
+    for index, elem in enumerate(endog3):
+        name = 'endog3' + '_' + str(index)
+        exog = sm.add_constant(datac[exog3])
+        if options == 0:
+            mod = PanelOLS(datac[elem], exog, entity_effects=True, time_effects=True)
+        if options == 1:
+            mod = PanelOLS(datac[elem], exog, entity_effects=False, time_effects=True)
+        results.append(mod.fit(cov_type='clustered', clusters=datac.gvkey))
+    return results
+
+def regressions(data, endog, exog, options, clusterfirm):
+    #results = []
+    exog = sm.add_constant(data[exog])
+    if options == 0:
+        mod = PanelOLS(data[endog], exog, entity_effects=True, time_effects=True)
+    if options == 1:
+        mod = PanelOLS(data[endog], exog, entity_effects=False, time_effects=True)
+    if options == 2:
+        #print(data[[endog]], exog)
+        mod = PooledOLS(data[endog], exog)
+    if clusterfirm == 0:
+        results = mod.fit(cov_type='clustered', clusters=data.gvkey)
+    if clusterfirm == 1:
+        results = mod.fit(cov_type='clustered', cluster_entity=True)
+    if clusterfirm == 2:
+        results = mod.fit()
+    return results
+
+def run_regressions_4(data=[], endog=[], exog=[], options=0, clusterfirm=0):
+    results = []
+    print(endog)
+    for index, elem in enumerate(data):
+        for i in endog[index]:
+            print(type(elem))
+            print(i)
+            results.append(regressions(elem, i, exog, options, clusterfirm))
+    return results
 
 def run_regressions_2(data, endog=[], exog=[], options=0):
     results = []
@@ -274,6 +329,25 @@ def run_regressions_2(data, endog=[], exog=[], options=0):
         results.append(mod.fit(cov_type='clustered', clusters=data.gvkey))
     return results
 
+def run_regressions_3(data=[], endog=[], exog=[], options=0, clusterfirm=0):
+    results = []
+    print(endog)
+    for index, elem in enumerate(data):
+        # name = 'endog' + '_' + str(index)
+        if options == 0:
+            mod = PanelOLS(elem[endog], elem[exog], entity_effects=True, time_effects=True)
+        if options == 1:
+            mod = PanelOLS(elem[endog], elem[exog], entity_effects=False, time_effects=True)
+        if options == 2:
+            print(type(elem))
+            mod = PooledOLS(elem[endog], elem[exog])
+        if clusterfirm == 0:
+            results.append(mod.fit(cov_type='clustered', clusters=elem.gvkey))
+        if clusterfirm == 1:
+            results.append(mod.fit(cov_type='clustered', cluster_entity=True))
+        if clusterfirm == 2:
+            results.append(mod.fit())
+    return results
 
 def check_pvalues(t, pvalue):
     """takes a parameter and pvalue and adds asterix"""
@@ -284,7 +358,7 @@ def check_pvalues(t, pvalue):
     if (pvalue <= 0.1) & (pvalue > 0.05):
        s = str(t) + '*'
     if pvalue > 0.1:
-        s = str(t)
+       s = str(t)
     return s
 
 
@@ -318,8 +392,9 @@ def prep_params(reg_results, endog=[], exog=[], param=[], pvalues=[], stderrors=
             t = re_parameters(t)
             s = check_pvalues(t, elem.pvalues.values[i])
             std = "(" + str(round(elem.std_errors.values[i], 3)).ljust(5, '0') + ")"
-            new_para.append(s)
-            new_std.append(std)
+            if e != 'const':
+                new_para.append(s)
+                new_std.append(std)
         new_para = ['\ ' + i if i[0] != '-' else i for i in new_para ]
         list_para.append(new_para)
         list_std.append(new_std)
@@ -332,7 +407,7 @@ def print_reg(endog, exog, reg_results, fixed=['year', 'industry'], model='OLS')
     if len(endog) != len(reg_results[0]):
         print("Model number incorrect")
         return None
-    if len(exog) != len(reg_results[0][0]):
+    if len(exog) != len(reg_results[0][0])-1:
         print("Number of parameters does not match")
         return None
     rows = len(reg_results[0][0]) +  len(reg_results) - 2 + 2
@@ -431,10 +506,9 @@ def print_reg_2(endog, exog, reg_results, fixed=['year', 'industry'], model='OLS
     return line_holder
 
 
-
 def prep_latex_table(a):
     list_all = []
-    begin1 = [r"\begin{table}[]"]
+    begin1 = [r"\begin{table}[H]"]
     begin2 = [r"\centering"]
     begin3 = [r'\begin{tabular}'+ "{l" + 'l'*(len(a[0])-1) + "}"]
     begin4 = [r'\hline']
@@ -446,3 +520,150 @@ def prep_latex_table(a):
     list_all.extend(a)
     list_all.extend(end)
     return list_all
+
+
+def sig_sort2(x, a, var):
+    if x[var] <= a[0].loc[x['fyear']][0]:
+        x['Sig_1a'] = 1
+    if a[0].loc[x['fyear']][0] < x[var] <= a[1].loc[x['fyear']][0]:
+        x['Sig_2a'] = 1
+    if a[1].loc[x['fyear']][0] < x[var] <= a[2].loc[x['fyear']][0]:
+        x['Sig_3a'] = 1
+    if a[2].loc[x['fyear']][0] < x[var] <= a[3].loc[x['fyear']][0]:
+        x['Sig_4a'] = 1
+    if x[var] > a[3].loc[x['fyear']][0]:
+        x['Sig_5a'] = 1
+    return x
+
+def create_groups2(data, data2, var_name, new_name, groups=5):
+    """Creates quintiles and groups"""
+    # first create the quintiles
+    # Then create the variables in the data frame
+    quintile_holder = []
+    for i in range(groups):
+        newname = new_name + "_" + str(i+1)
+        q = 0.2 + i*0.2
+        data2[newname] = 0
+        newname = data.groupby(['fyear'])[[var_name]].quantile(q)
+        quintile_holder.append(newname)
+    data2 = data2.apply(lambda row: sort_Q5(row, quintile_holder, 'AP_cut', 'AP'), axis=1)
+    return data2
+
+def create_groups_old(data, var_name, new_name, groups=5):
+    """Creates quintiles and groups"""
+    # first create the quintiles
+    # Then create the variables in the data frame
+    quintile_holder = []
+    for i in range(groups):
+        newname = new_name + "_" + str(i+1)
+        q = 0.2 + i*0.2
+        data[newname] = 0
+        newname = data.groupby(['fyear'])[[var_name]].quantile(q)
+        quintile_holder.append(newname)
+    data = data.apply(lambda row: sort_Q5_old(row, quintile_holder, var_name, new_name), axis=1)
+    return data
+
+def sort_Q5_old(x, a, var, initial, grps=5):
+    if x[var] <= a[0].loc[x['fyear']][0]:
+        x[initial + '_1'] = 1
+    if a[0].loc[x['fyear']][0] < x[var] <= a[1].loc[x['fyear']][0]:
+        x[initial + '_2'] = 1
+    if a[1].loc[x['fyear']][0] < x[var] <= a[2].loc[x['fyear']][0]:
+        x[initial + '_3'] = 1
+    if a[2].loc[x['fyear']][0] < x[var] <= a[3].loc[x['fyear']][0]:
+        x[initial + '_4'] = 1
+    if x[var] > a[3].loc[x['fyear']][0]:
+        x[initial + '_5'] = 1
+    return x
+
+
+def create_groups(data, grpby_var, var_name, new_name, grps=5, quintiles=[], sub_grp=0, sub_grp_val=0):
+    """Creates quintiles and groups"""
+    # first create the quintiles
+    # Then create the variables in the data frame
+    quintile_holder = []
+    if quintiles == []:
+        for i in range(grps):
+            newname = new_name + "_" + str(i+1)
+            q = (1/grps) + i*(1/grps)
+            data[newname] = 0
+            newname = data.groupby([grpby_var])[[var_name]].quantile(q)
+            quintile_holder.append(newname)
+    else:
+        temp_data = data[data[sub_grp] == sub_grp_val]
+        for item, elem in enumerate(quintiles):
+            newname = new_name + "_" + str(item + 1)
+            data[newname] = 0
+            newname = temp_data.groupby([grpby_var])[[var_name]].quantile(elem)
+            quintile_holder.append(newname)
+        del temp_data
+        #small = temp_data.groupby(['fyear'])[[var_name]].quantile(0.25)
+        #medium = temp_data.groupby(['fyear'])[[var_name]].quantile(0.5)
+        #large = temp_data.groupby(['fyear'])[[var_name]].quantile(1)
+        #data[]
+        #quintile_holder = [small, medium, large]
+        #print(quintile_holder)
+    data = data.apply(lambda row: sort_g(row, grpby_var, quintile_holder, var_name, new_name, grps), axis=1)
+    return data
+
+def sort_g(x, grpby_var, a, var, initial, grps=5):
+    for i in range(grps):
+        if i == 0:
+            if x[var] <= a[i].loc[x[grpby_var]][0]:
+                x[initial + '_1'] = 1
+        if i > 0:
+            if a[i-1].loc[x[grpby_var]][0] < x[var] <= a[i].loc[x[grpby_var]][0]:
+                name = initial + "_" + str(i+1)
+                x[name] = 1
+    return x
+
+
+def prep_trend(model):
+    """Function to take a list of endog, exog variables, estimated PARAMETERS, pvalues and t-stats"""
+    params = model.params.loc['trend':][0]*100
+    pvals = model.pvalues.loc['trend':][0]
+    std = np.sqrt(model.cov_params()['trend']['trend'])*100
+    dep_var = model.summary2().tables[0][1][1]
+    """Resize parameters and add asterix"""
+    t = str(round(params, 3))
+    t = re_parameters(t)
+    s = check_pvalues(t, pvals)
+    std = "(" + str(round(std, 3)).ljust(5, '0') + ")"
+    #print(s)
+    #new_para = ['\ ' + i if i[0] != '-' else i for i in new_para]
+    #print(t[0])
+    if s[0] != '-':
+        s = '\ ' + s
+    return [dep_var, s, std]
+
+def really_short_latex(a):
+    ss = '&'.join(a)
+    ss = ss +'\\\\'
+    print(ss)
+
+def list_maker_deluxe(a,b):
+    holder_list = []
+    for index, elem in enumerate(a):
+        holder_list.append(a[index])
+        holder_list.append(b[index])
+    return holder_list
+
+def trend_parameters(data, trend, periods):
+    holder_par = []
+    holder_std = []
+    for index, elem in enumerate(periods):
+        stringize = str(elem[0]) + '-' + str(elem[1])
+        holder_par.append([stringize])
+        holder_std.append([''])
+        for i in trend:
+            empty = ['']
+            temp = data.loc[elem[0]:elem[1]]
+            exog = sm.add_constant(temp['trend'])
+            if not temp[i].isna().any():
+                model = sm.OLS(temp[i], exog).fit()
+                holder_par[index].extend([prep_trend(model)[1]])
+                holder_std[index].extend([prep_trend(model)[2]])
+            else:
+                holder_par[index].extend(empty)
+                holder_std[index].extend(empty)
+    return holder_par, holder_std

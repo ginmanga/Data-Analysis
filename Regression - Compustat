@@ -10,12 +10,12 @@ import Functions
 import importlib
 
 importlib.reload(Functions)
-
+tables = ""
 
 datadirectory = os.path.join(os.getcwd(), 'data')
 
 
-FUNDABS_lag = pd.read_csv(os.path.join(datadirectory, "FUNDABS_lag-Feb1.csv.gz"))
+FUNDABS_lag = pd.read_csv(os.path.join(datadirectory, "FUNDABS_lag-March04.csv.gz"))
 
 FUNDABS_descreg = FUNDABS_lag
 
@@ -28,191 +28,990 @@ FUNDABS_descreg['HHI-C5'] = FUNDABS_descreg['HH2']
 
 # FUNDABS_descreg = FUNDABS_lag[FUNDABS_lag.fyear > 2001]
 
+sp = FUNDABS_descreg[['HHI-C5', 'HHI-C8', 'BD_CPCT', 'DD_CPCT', 'DN_CPCT', 'CL_CPCT', 'SHORT_CPCT',
+                      'SUBNOTCONV_CPCT', 'SUBCONV_CPCT']]
 
-
+sp = FUNDABS_descreg[['HHI-C5', 'HHI-C8', 'BD_CPCT', 'CL_CPCT', 'SHORT_CPCT', 'AP_cut']]
+sp = FUNDABS_descreg[['SBN_CPCT', 'SUB_CPCT', 'BD_CPCT', 'CL_CPCT', 'SHORT_CPCT', 'AP_cut']]
+sp.corr()
 
 
 #Size Quintiles
 
-Size_1 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(0.2)
-Size_2 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(0.4)
-Size_3 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(0.6)
-Size_4 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(0.8)
-Size_5 = FUNDABS_descreg.groupby(['fyear'])[['AT_cut']].quantile(1)
+FUNDABS_descreg = Functions.create_groups(FUNDABS_descreg, "AT_cut", 'Q',  groups=5)
+FUNDABS_descreg = Functions.create_groups(FUNDABS_descreg, "income_std_12_cut_lag", 'CFVQ',  groups=5)
+FUNDABS_descreg = Functions.create_groups(FUNDABS_descreg, "income_std_4_cut_lag", 'CFVA',  groups=5)
 
 
-FUNDABS_descreg['Size_1'] = 0
-FUNDABS_descreg['Size_2'] = 0
-FUNDABS_descreg['Size_3'] = 0
-FUNDABS_descreg['Size_4'] = 0
-FUNDABS_descreg['Size_5'] = 0
+# AP interaction terms
+FUNDABS_descreg['APRD'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['RD_cut']
+FUNDABS_descreg['APSTDQ'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['income_std_12_cut_lag']
+FUNDABS_descreg['APSTDA'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['income_std_4_cut_lag']
 
-def size_sort2(x, y):
-    if x[y] <= Size_1.loc[x['fyear']][0]:
-        x['Size_1'] = 1
-    if Size_1.loc[x['fyear']][0] < x[y] <= Size_2.loc[x['fyear']][0]:
-        x['Size_2'] = 1
-    if Size_2.loc[x['fyear']][0] < x[y] <= Size_3.loc[x['fyear']][0]:
-        x['Size_3'] = 1
-    if Size_3.loc[x['fyear']][0] < x[y] <= Size_4.loc[x['fyear']][0]:
-        x['Size_4'] = 1
-    if x[y] > Size_4.loc[x['fyear']][0]:
-        x['Size_5'] = 1
-    return x
+FUNDABS_descreg['APQ2'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['Q_2']
+FUNDABS_descreg['APQ3'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['Q_3']
+FUNDABS_descreg['APQ4'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['Q_4']
+FUNDABS_descreg['APQ5'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['Q_5']
 
-FUNDABS_descreg = FUNDABS_descreg.apply(lambda row: size_sort2(row, 'AT_cut'), axis=1)
+FUNDABS_descreg['APCFVQ2'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['CFVQ_2']
+FUNDABS_descreg['APCFVQ3'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['CFVQ_3']
+FUNDABS_descreg['APCFVQ4'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['CFVQ_4']
+FUNDABS_descreg['APCFVQ5'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['CFVQ_5']
 
-FUNDABS_descreg['Q1'] = FUNDABS_descreg['Size_1']
-FUNDABS_descreg['Q2'] = FUNDABS_descreg['Size_2']
-FUNDABS_descreg['Q3'] = FUNDABS_descreg['Size_3']
-FUNDABS_descreg['Q4'] = FUNDABS_descreg['Size_4']
-FUNDABS_descreg['Q5'] = FUNDABS_descreg['Size_5']
+FUNDABS_descreg['APCFVA2'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['CFVA_2']
+FUNDABS_descreg['APCFVA3'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['CFVA_3']
+FUNDABS_descreg['APCFVA4'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['CFVA_4']
+FUNDABS_descreg['APCFVA5'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['CFVA_5']
 
-FUNDABS_descreg = FUNDABS_descreg.sort_values(by=['FF48', 'fyear'])
-FUNDABS_descreg7989 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1978]
-FUNDABS_descreg7989 = FUNDABS_descreg7989[FUNDABS_descreg7989.fyear < 1990]
+FUNDABS_descreg['APLJUNK'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['LJUNK']
+FUNDABS_descreg['APBB'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['BB']
+FUNDABS_descreg['APBBB'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['BBB']
+FUNDABS_descreg['APLA'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['A']
+FUNDABS_descreg['APLHIG'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['HIG']
+
+def interaction_generator(datarses, inter1="", inter2="", name_1="", name_2=""):
+    for index, elem in enumerate(inter1):
+        for i, e in enumerate(inter2):
+            vname = name_1[index] + name_2[i]
+            datarses
+    return None
+FUNDABS_descreg['DUALTAKE'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['DUALCLASS']
+FUNDABS_descreg['DUALTAKERATED'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['DUALCLASS'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['DUALRATED'] = FUNDABS_descreg['DUALCLASS'] * FUNDABS_descreg['UR']
+
+FUNDABS_descreg['MBOOKUR'] = FUNDABS_descreg['MVBook_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['PROFUR'] = FUNDABS_descreg['PROF_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['DIVPUR'] = FUNDABS_descreg['DIVP_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['TANGUR'] = FUNDABS_descreg['TANG_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['CFVUR'] = FUNDABS_descreg['income_std_4_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['RFUR'] = FUNDABS_descreg['RD_cut_lag'] * FUNDABS_descreg['UR']
+
+FUNDABS_descreg['HLJUNK'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['LJUNK']
+FUNDABS_descreg['HBB'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['BB']
+FUNDABS_descreg['HLIG'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['LIG']
+FUNDABS_descreg['HHIG'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['HIG']
+
+FUNDABS_descreg['GHINDEX'] = FUNDABS_descreg['hostile_index'] * FUNDABS_descreg['GINDEX']
+FUNDABS_descreg['EHINDEX'] = FUNDABS_descreg['hostile_index'] * FUNDABS_descreg['EINDEX']
+FUNDABS_descreg['HUN'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['UR']
+
+FUNDABS_descreg['HOWN'] = FUNDABS_descreg['hostile_index'] * FUNDABS_descreg['OWN_C_2']
+FUNDABS_descreg['GHINDEX2'] = FUNDABS_descreg['hostile_index'] * FUNDABS_descreg['GIGRP_2']
+
+
+FUNDABS_descreg7079 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1969]
+FUNDABS_descreg7079 = FUNDABS_descreg7079[FUNDABS_descreg7079.fyear < 1980]
+FUNDABS_descreg8089 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1979]
+FUNDABS_descreg8089 = FUNDABS_descreg8089[FUNDABS_descreg8089.fyear < 1990]
+
+FUNDABS_descreg8689 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1985]
+FUNDABS_descreg8689 = FUNDABS_descreg8689[FUNDABS_descreg8689.fyear < 1990]
 FUNDABS_descreg9099 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1989]
 FUNDABS_descreg9099 = FUNDABS_descreg9099[FUNDABS_descreg9099.fyear < 2000]
 FUNDABS_descreg0009 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1999]
 FUNDABS_descreg0009 = FUNDABS_descreg0009[FUNDABS_descreg0009.fyear < 2010]
 FUNDABS_descreg1018 = FUNDABS_descreg[FUNDABS_descreg.fyear > 2009]
 FUNDABS_descreg1018 = FUNDABS_descreg1018[FUNDABS_descreg1018.fyear < 2019]
-#Turn to panel
+# Turn to panel
 FUNDABS = FUNDABS_descreg
 year = pd.Categorical(FUNDABS.fyear)
 FUNDABS = FUNDABS.set_index(['FF48', 'fyear'])
+# FUNDABS = FUNDABS.set_index(['gvkey', 'fyear'])
 FUNDABS['year'] = year
 
-year = pd.Categorical(FUNDABS_descreg7989.fyear)
-FUNDABS_descreg7989 = FUNDABS_descreg7989.set_index(['FF48', 'fyear'])
-FUNDABS_descreg7989['year'] = year
+year = pd.Categorical(FUNDABS_descreg7079.fyear)
+FUNDABS_descreg7079 = FUNDABS_descreg7079.set_index(['FF48', 'fyear'])
+#FUNDABS_descreg7079 = FUNDABS_descreg7079.set_index(['gvkey', 'fyear'])
+FUNDABS_descreg7079['year'] = year
+
+year = pd.Categorical(FUNDABS_descreg8089.fyear)
+FUNDABS_descreg8089 = FUNDABS_descreg8089.set_index(['FF48', 'fyear'])
+#FUNDABS_descreg8089 = FUNDABS_descreg8089.set_index(['gvkey', 'fyear'])
+FUNDABS_descreg8089['year'] = year
+
+year = pd.Categorical(FUNDABS_descreg8689.fyear)
+FUNDABS_descreg8689 = FUNDABS_descreg8689.set_index(['FF48', 'fyear'])
+#FUNDABS_descreg8689 = FUNDABS_descreg8689.set_index(['gvkey', 'fyear'])
+FUNDABS_descreg8689['year'] = year
 
 year = pd.Categorical(FUNDABS_descreg9099.fyear)
 FUNDABS_descreg9099 = FUNDABS_descreg9099.set_index(['FF48', 'fyear'])
+#FUNDABS_descreg9099 = FUNDABS_descreg9099.set_index(['gvkey', 'fyear'])
 FUNDABS_descreg9099['year'] = year
 
 year = pd.Categorical(FUNDABS_descreg0009.fyear)
 FUNDABS_descreg0009 = FUNDABS_descreg0009.set_index(['FF48', 'fyear'])
+#FUNDABS_descreg0009 = FUNDABS_descreg0009.set_index(['gvkey', 'fyear'])
 FUNDABS_descreg0009['year'] = year
 
 year = pd.Categorical(FUNDABS_descreg1018.fyear)
 FUNDABS_descreg1018 = FUNDABS_descreg1018.set_index(['FF48', 'fyear'])
+#FUNDABS_descreg1018 = FUNDABS_descreg1018.set_index(['gvkey', 'fyear'])
 FUNDABS_descreg1018['year'] = year
 
+datars = [FUNDABS, FUNDABS_descreg8089, FUNDABS_descreg9099, FUNDABS_descreg0009, FUNDABS_descreg1018]
+datarss = [FUNDABS, FUNDABS_descreg7079, FUNDABS_descreg8089, FUNDABS_descreg9099, FUNDABS_descreg0009,
+           FUNDABS_descreg1018]
+
+datarCR = [FUNDABS, FUNDABS_descreg8689, FUNDABS_descreg9099, FUNDABS_descreg0009,
+           FUNDABS_descreg1018]
+
+datarss = [FUNDABS, FUNDABS_descreg9099, FUNDABS_descreg0009]
+
+datars = [FUNDABS_descreg8689, FUNDABS_descreg9099, FUNDABS_descreg0009,
+           FUNDABS_descreg1018]
+
+datarsss = [FUNDABS, FUNDABS_descreg9099, FUNDABS_descreg0009]
 
 
 
+############# Full model industry fixed effects ###################
 
-exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
-                 'RD_cut_lag']
-
-exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
-                 'RD_cut_lag', 'BLEV_cut_lag']
+datarss = [FUNDABS, FUNDABS_descreg7079, FUNDABS_descreg8089, FUNDABS_descreg9099, FUNDABS_descreg0009,
+           FUNDABS_descreg1018]
 
 
-exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
-                 'RD_cut_lag']
+FUNDABS_descreg['MBOOKUR'] = FUNDABS_descreg['MVBook_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['PROFUR'] = FUNDABS_descreg['PROF_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['DIVPUR'] = FUNDABS_descreg['DIVP_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['TANGUR'] = FUNDABS_descreg['TANG_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['CFVUR'] = FUNDABS_descreg['income_std_4_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['RFUR'] = FUNDABS_descreg['RD_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['CAPUR'] = FUNDABS_descreg['CAPEX_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['APUR'] = FUNDABS_descreg['AP_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['INVUR'] = FUNDABS_descreg['INV_TOT_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['ARECFUR'] = FUNDABS_descreg['AREC_TOT_cut_lag'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['BLEVUR'] = FUNDABS_descreg['BLEV_cut_lag'] * FUNDABS_descreg['UR']
 
-exog_vars_cut_4 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
-                 'RD_cut_lag', 'BLEV_cut_lag']
+FUNDABS_descreg['HLJUNK'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['LJUNK']
+FUNDABS_descreg['HBB'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['BB']
+FUNDABS_descreg['HLIG'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['LIG']
+FUNDABS_descreg['HHIG'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['HIG']
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag',
+                   'CAPEX_cut_lag', 'income_std_4_cut_lag', 'RD_cut_lag', 'BLEV_cut_lag',
+                   'AP_cut_lag', 'INV_TOT_cut_lag', 'AREC_TOT_cut_lag', 'LJUNK', 'BB', 'LIG', 'HIG',
+                   'hostile_index_L1',  'HLJUNK', 'HBB', 'HLIG', 'HHIG']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'Capex', 'CFV\_A', 'R\&D exp.', 'Book lev.',
+         'Acc Pay', 'Inventories', 'Accounts Receivables', 'LJUNK', 'BB', 'LIG', 'HIG', 'HINDEX',
+        'HLJUNK', 'HBB', 'HLIG', 'HHIG']
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag',
+                   'CAPEX_cut_lag',  'income_std_4_cut_lag', 'RD_cut_lag', 'BLEV_cut_lag',
+                   'AP_cut_lag', 'INV_TOT_cut_lag', 'AREC_TOT_cut_lag', 'UR',
+                   'PROFUR', 'DIVPUR', 'TANGUR', 'CFVUR', 'RFUR', 'MBOOKUR']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'Capex', 'CFV\_A', 'R\&D exp.', 'Book lev.',
+         'Acc Pay', 'Inventories', 'Accounts Receivables', 'UR', 'PROFUR', 'DIVPUR',
+         'TANGUR', 'CFVUR', 'RFUR', 'MBOOKUR']
 
 
-exog_vars_cut_5 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
-                 'RD_cut_lag']
+b1 = Functions.run_regressions_3(datarCR, 'HHI-C5', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datarCR, 'HHI-C8', exog_vars_cut_1)
+endog1 = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+endog2 = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+endog1 = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+endog2 = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
 
-exog_vars_cut_6 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
-                 'RD_cut_lag', 'BLEV_cut_lag']
-
-
-exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
-                 'RD_cut_lag', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5']
-
-FUNDABS_descreg['C/B'] = FUNDABS_descreg['LJUNK']
-FUNDABS_descreg['BBB/A'] = FUNDABS_descreg['LIG']
-FUNDABS_descreg['AA/AAA'] = FUNDABS_descreg['HIG']
-FUNDABS_descreg['HHI-C8'] = FUNDABS_descreg['HH1']
-FUNDABS_descreg['HHI-C5'] = FUNDABS_descreg['HH2']
-
-FUNDABS_descreg7989 = FUNDABS_descreg[FUNDABS_descreg.fyear > 1978]
-FUNDABS_descreg7989 = FUNDABS_descreg[FUNDABS_descreg.fyear < 1990]
-
-b1 = Functions.run_regressions(FUNDABS_descreg, FUNDABS_descreg, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_1, exog_vars_cut_2)
-
-b2 = Functions.run_regressions(FUNDABS_descreg, FUNDABS_descreg, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_3, exog_vars_cut_4)
-
-b3 = Functions.run_regressions(FUNDABS_descreg, FUNDABS_descreg, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_5, exog_vars_cut_6, options=1)
-
-endog = ['HHI-C5', 'HHI-C8', 'HHI-C5', 'HHI-C8']
-
-exog = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility',  'Accounts Payable', 'CFV\_FF48', 'R\&D exp.',
-        'Unrated', 'Book lev.']
+Functions.write_file_latex_style(tables, "1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog1, exog1, Functions.prep_params(b1))),
+                                 'w')
 
 Functions.write_file_latex_style(tables,
-                                 "ra1.txt",
-                                 Functions.prep_latex_table(Functions.print_reg(endog, exog, Functions.prep_params(b1))),
+                                 "2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog2, exog1, Functions.prep_params(b2))),
                                  'w')
+
+################# MAIN #########
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AP_cut_lag', 'UR']
+
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AP_cut_lag', 'INV_TOT_cut_lag', 'AREC_TOT_cut_lag', 'UR']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AP_cut_lag', 'INV_TOT_cut_lag', 'AREC_TOT_cut_lag', 'UR',
+                   'hostile_index_L1']
+
+FUNDABS_descreg['DUALTAKERATED'] = FUNDABS_descreg['hostile_index_L1'] * FUNDABS_descreg['DUALCLASS'] * FUNDABS_descreg['UR']
+FUNDABS_descreg['DUALRATED'] = FUNDABS_descreg['DUALCLASS'] * FUNDABS_descreg['UR']
+
+exog_vars_cut_4 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AP_cut_lag', 'INV_TOT_cut_lag', 'AREC_TOT_cut_lag', 'UR',
+                   'hostile_index_L1', 'HUN']
+
+exog_vars_cut_4 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AP_cut_lag', 'INV_TOT_cut_lag', 'AREC_TOT_cut_lag', 'UR',
+                   'hostile_index_L1', 'HUN', 'DUALCLASS', 'DUALRATED', 'DUALTAKE', 'DUALTAKERATED']
+
+b = ['NOTDUAL', 'DUALCLASS']
+FUNDABS_descreg['DUALTAKE'] = FUNDABS_descreg['hostile_index'] * FUNDABS_descreg['DUALCLASS']
+
+FUNDABS_descreg['HOWN'] = FUNDABS_descreg['hostile_index'] * FUNDABS_descreg['OWN_C_2']
+FUNDABS_descreg['GHINDEX2'] = FUNDABS_descreg['hostile_index'] * FUNDABS_descreg['GIGRP_2']
+
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AREC_TOT_cut_lag', 'hostile_index']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AREC_TOT_cut_lag', 'hostile_index', 'OWN_A_2',  'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+
+exog_vars_cut_4 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AREC_TOT_cut_lag', 'hostile_index', 'OWN_C_2', 'HOWN', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+
+b1 = Functions.run_regressions_3(datarss, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datarss, 'HHI-C8', exog_vars_cut_2) #, options=1)
+b3 = Functions.run_regressions_3(datarss, 'HHI-C8', exog_vars_cut_3) # , options=1)
+b4 = Functions.run_regressions_3(datarss, 'HHI-C5', exog_vars_cut_4) # , options=1)
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8']
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_A', 'R\&D exp.', 'Book lev.',
+         'Acc Pay', 'URATED']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_A', 'R\&D exp.', 'Book lev.',
+         'Acc Pay', 'Inventories', 'Acc Rec', 'URATED']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_A', 'R\&D exp.', 'Book lev.',
+         'Acc Pay', 'Inventories', 'Acc Rec', 'URATED', 'HINDEX']
+exog4 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_A', 'R\&D exp.', 'Book lev.',
+         'Acc Pay', 'Inventories', 'Acc Rec', 'URATED', 'HINDEX', 'HUN']
+
+exog4 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_A', 'R\&D exp.', 'Book lev.',
+         'Acc Pay', 'Inventories', 'Acc Rec', 'URATED', 'HINDEX', 'HUN',
+         'DUALCLASS', 'DUALRATED', 'DUALTAKE', 'DUALTAKERATED']
+
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.', 'Acc Rec', 'HINDEX']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.', 'Acc Rec',
+         'HINDEX',  'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog4 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.', 'Acc Rec',
+         'HINDEX', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.', 'Acc Rec',
+         'HINDEX', 'HIGHOWN',  'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog4 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.', 'Acc Rec',
+         'HINDEX', 'HIGHOWN', 'HTOWN', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+
+Functions.write_file_latex_style(tables, "1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+Functions.write_file_latex_style(tables,
+                                 "4.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog4, Functions.prep_params(b4))),
+                                 'w')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################### NEW ############### INTERACTIONS TERMS #################################
+
+
+FUNDABS_descreg['APLJUNK'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['LJUNK']
+FUNDABS_descreg['APBB'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['BB']
+FUNDABS_descreg['APBBB'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['BBB']
+FUNDABS_descreg['APLA'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['A']
+FUNDABS_descreg['APLHIG'] = FUNDABS_descreg['AP_cut'] * FUNDABS_descreg['HIG']
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'AP_cut', 'APLJUNK',
+                   'APBB', 'APBBB', 'APLA', 'APLHIG']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'AP_cut', 'APLJUNK',
+                   'APBB', 'APBBB', 'APLA', 'APLHIG']
+
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'AP_cut', 'APLJUNK',
+                   'APBB', 'APBBB', 'APLA', 'APLHIG']
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AP_cut_lag', 'UR']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag','AP_cut_lag', 'UR']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'AP_cut_lag', 'UR']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'UR']
+
+b1 = Functions.run_regressions_3(datarss, 'HHI-C5', exog_vars_cut_1, clusterfirm=1)
+b2 = Functions.run_regressions_3(datarss, 'HHI-C5', exog_vars_cut_2, clusterfirm=1)
+b3 = Functions.run_regressions_3(datarss, 'HHI-C5', exog_vars_cut_3, clusterfirm=1)
+# b3 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_3)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+endogs = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Acc Pay', 'APLJUNK', 'APBB', 'APBBB', 'APLA', 'APLHIG']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Book lev.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Acc Pay', 'APLJUNK', 'APBB', 'APBBB', 'APLA', 'APLHIG']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.', 'Acc Pay', 'UR']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Book lev.', 'Acc Pay', 'UR']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_FF48', 'R\&D exp.', 'Book lev.', 'Acc Pay', 'UR']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_FF48', 'R\&D exp.', 'Book lev.', 'UR']
+Functions.write_file_latex_style(tables, "1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+Functions.write_file_latex_style(tables,
+                                 "3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+
+
+Functions.write_file_latex_style(tables,
+                                 "3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+################# MAIN #########
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                   'RD_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_3)
+
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_Q', 'R\&D exp.']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.', 'Q2',
+         'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "ra1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "ra2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "ra3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag']
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_3)
+
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_A', 'R\&D exp.']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_A', 'R\&D exp.', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_A', 'R\&D exp.', 'Book lev.', 'Q2',
+         'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "ra4.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "ra5.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "ra6.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag', 'BLEV_cut_lag']
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_1, options=1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_2, options=1)
+b3 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_3, options=1)
+
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_FF48', 'R\&D exp.']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_FF48', 'R\&D exp.', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tangibility', 'CFV\_FF48', 'R\&D exp.', 'Book lev.', 'Q2',
+         'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "ra7.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "ra8.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "ra9.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+# HH8
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                   'RD_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag']
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                   'RD_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_3)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Book lev.', 'Q2',
+         'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "8ra1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8ra2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8ra3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'BLEV_cut_lag']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_3)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Book lev.', 'Q2',
+         'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "8ra4.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8ra5.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8ra6.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+#CRatings
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_3)
+
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "bra1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "bra2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "bra3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_3)
+
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "bra4.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "bra5.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "bra6.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+# 8 CAT
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_3)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "8bra1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8bra2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8bra3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_3)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "8bra4.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8bra5.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8bra6.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+###### ADD AP_cut ###############
+
+
 
 
 exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
                  'RD_cut_lag', 'AP_cut_lag']
-
 exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
                  'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag']
 
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_3)
+
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Accounts Payable']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Accounts Payable',
+         'Book lev.', ]
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Accounts Payable',
+         'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "APra1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "APra2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "APra3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'AP_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag']
 
 exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
-                 'RD_cut_lag', 'AP_cut_lag',  'Q2', 'Q3', 'Q4', 'Q5']
+                    'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
 
-exog_vars_cut_4 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
-                 'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag',  'Q2', 'Q3', 'Q4', 'Q5']
-
-
-exog_vars_cut_5 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
-                 'RD_cut_lag']
-
-exog_vars_cut_6 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
-                 'RD_cut_lag', 'BLEV_cut_lag']
-
-b1 = Functions.run_regressions(FUNDABS_descreg7989, FUNDABS_descreg7989, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_1, exog_vars_cut_2)
-
-b2 = Functions.run_regressions(FUNDABS_descreg7989, FUNDABS_descreg7989, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_3, exog_vars_cut_4)
+b1 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_3)
 
 
-b3 = Functions.run_regressions(FUNDABS_descreg7989, FUNDABS_descreg7989, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_5, exog_vars_cut_6)
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Accounts Payable']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Accounts Payable',
+         'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.',
+         'Accounts Payable', 'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "APra4.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "APra5.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "APra6.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag', 'AP_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                    'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_1, options=1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_2, options=1)
+b3 = Functions.run_regressions_3(datars, 'HHI-C5', exog_vars_cut_3, options=1)
+
+
+endog = ['HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5', 'HHI-C5']
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_FF48', 'R\&D exp.', 'Accounts Payable']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_FF48', 'R\&D exp.', 'Accounts Payable',
+         'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_FF48', 'R\&D exp.',
+         'Accounts Payable', 'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+
+Functions.write_file_latex_style(tables, "APra7.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "APra8.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "APra9.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+# 8CAT plus AP
 
 
 exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
-                 'RD_cut_lag', 'UR']
-
+                 'RD_cut_lag', 'AP_cut_lag']
 exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
-                 'RD_cut_lag', 'BLEV_cut_lag', 'UR']
+                 'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag']
 
-, 'AP_cut_lag'
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_3)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Accounts Payable']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Accounts Payable',
+         'Book lev.', ]
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Accounts Payable',
+         'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "8APra1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8APra2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8APra3.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'AP_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                   'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag']
+
 exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
-                 'RD_cut_lag', "UR"]
+                    'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
 
-exog_vars_cut_4 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
-                 'RD_cut_lag', 'UR', 'BLEV_cut_lag']
-
-
-exog_vars_cut_5 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
-                 'RD_cut_lag', 'UR']
-
-exog_vars_cut_6 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
-                 'RD_cut_lag', 'UR', 'BLEV_cut_lag']
-
-b1 = Functions.run_regressions(FUNDABS_descreg9099, FUNDABS_descreg9099, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_1, exog_vars_cut_2)
-
-b2 = Functions.run_regressions(FUNDABS_descreg9099, FUNDABS_descreg9099, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_3, exog_vars_cut_4)
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_3)
 
 
-b3 = Functions.run_regressions(FUNDABS_descreg9099, FUNDABS_descreg9099, ['HHI-C5', 'HHI-C8'], ['HHI-C5', 'HHI-C8'],
-                    exog_vars_cut_5, exog_vars_cut_6, options=1)
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Accounts Payable']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Accounts Payable',
+         'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.',
+         'Accounts Payable', 'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+Functions.write_file_latex_style(tables, "8APra4.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8APra5.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8APra6.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag', 'AP_cut_lag']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                   'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag']
+
+exog_vars_cut_3 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_10_FF48',
+                    'RD_cut_lag', 'AP_cut_lag', 'BLEV_cut_lag', 'Q2', 'Q3', 'Q4', 'Q5']
+
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+b3 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_3)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_FF48', 'R\&D exp.', 'Accounts Payable']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_FF48', 'R\&D exp.', 'Accounts Payable',
+         'Book lev.']
+exog3 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_FF48', 'R\&D exp.',
+         'Accounts Payable', 'Book lev.', 'Q2', 'Q3', 'Q4', 'Q5']
+
+Functions.write_file_latex_style(tables, "8APra7.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8APra8.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8APra9.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog3, Functions.prep_params(b3))),
+                                 'w')
+
+
+#AP PLUS CR
+
+
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'AP_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_12_cut_lag',
+                 'RD_cut_lag', 'AP_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag']
+
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Accounts Payable',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_Q', 'R\&D exp.', 'Accounts Payable',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.', ]
+
+
+
+Functions.write_file_latex_style(tables, "8APbra1.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "8APbra2.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')
+
+
+
+exog_vars_cut_1 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'AP_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog_vars_cut_2 = ['size_lag', 'MVBook_cut_lag', 'PROF_cut_lag', 'DIVP_lag', 'TANG_cut_lag', 'income_std_4_cut_lag',
+                 'RD_cut_lag', 'AP_cut_lag', 'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'BLEV_cut_lag']
+
+
+
+b1 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_1)
+b2 = Functions.run_regressions_3(datars, 'HHI-C8', exog_vars_cut_2)
+
+
+endog = ['HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8', 'HHI-C8']
+
+exog1 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Accounts Payable',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG']
+exog2 = ['ln(Size)', 'M/B', 'Profitability', 'Div.payer', 'Tagibility', 'CFV\_A', 'R\&D exp.', 'Accounts Payable',
+         'LJUNK', 'BB', 'BBB', 'A', 'HIG', 'Book lev.', ]
+
+Functions.write_file_latex_style(tables, "8APbra4.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog1, Functions.prep_params(b1))),
+                                 'w')
+
+Functions.write_file_latex_style(tables,
+                                 "AP8bra5.txt",
+                                 Functions.prep_latex_table(Functions.print_reg(endog, exog2, Functions.prep_params(b2))),
+                                 'w')

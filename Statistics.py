@@ -8,16 +8,11 @@ datadirectory = " "
 tables = 0
 
 FUNDIQ_desc_old = pd.read_csv(os.path.join(datadirectory, "FUNDIQDESC-DEC30.csv.gz"))
-# FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABSDESC-DEC31.csv.gz"))
 
-# FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQDESC-Jan29.csv.gz"))
-# FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABSDESC-Jan29.csv.gz"))
 
-# FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQDESC-Jan30.csv.gz"))
-# FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABSDESC-Jan30.csv.gz"))
+FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQ_GRPS-March12.csv.gz"))
 
-FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQDESC-Feb1.csv.gz"))
-FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABSDESC-Feb1.csv.gz"))
+FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABS_GRPS-March12.csv.gz"))
 
 
 FUNDABS_desc['C/B'] = FUNDABS_desc['LJUNK']
@@ -39,106 +34,101 @@ FUNDIQ_desc['HHI-IQ6'] = FUNDIQ_desc['HH2_IQ']
 FUNDIQ_desc['HHI-IQ7B'] = FUNDIQ_desc['HH1_IQB']
 FUNDIQ_desc['HHI-IQ6B'] = FUNDIQ_desc['HH2_IQB']
 
-FUNDIQ_desc_old['C/B'] = FUNDIQ_desc_old['LJUNK']
-FUNDIQ_desc_old['BBB/A'] = FUNDIQ_desc_old['LIG']
-FUNDIQ_desc_old['AA/AAA'] = FUNDIQ_desc_old['HIG']
-FUNDIQ_desc_old['HHI-C8'] = FUNDIQ_desc_old['HH1']
-FUNDIQ_desc_old['HHI-C5'] = FUNDIQ_desc_old['HH2']
-FUNDIQ_desc_old['HHI-IQ7'] = FUNDIQ_desc_old['HH1_IQ']
-FUNDIQ_desc_old['HHI-IQ6'] = FUNDIQ_desc_old['HH2_IQ']
+FUNDIQSUR = FUNDIQ_desc[FUNDIQ_desc.UR == 1]
+FUNDIQLIG = FUNDIQ_desc[FUNDIQ_desc.LIG == 1]
+FUNDIQHIG = FUNDIQ_desc[FUNDIQ_desc.HIG == 1]
+FUNDIQBB= FUNDIQ_desc[FUNDIQ_desc.BB == 1]
+FUNDIQBBB = FUNDIQ_desc[FUNDIQ_desc.BBB == 1]
+FUNDIQA = FUNDIQ_desc[FUNDIQ_desc.A == 1]
+FUNDIQLJUNK= FUNDIQ_desc[FUNDIQ_desc.LJUNK == 1]
+
+# FUNDIQ_desc_old['C/B'] = FUNDIQ_desc_old['LJUNK']
+# FUNDIQ_desc_old['BBB/A'] = FUNDIQ_desc_old['LIG']
+# FUNDIQ_desc_old['AA/AAA'] = FUNDIQ_desc_old['HIG']
+# FUNDIQ_desc_old['HHI-C8'] = FUNDIQ_desc_old['HH1']
+# FUNDIQ_desc_old['HHI-C5'] = FUNDIQ_desc_old['HH2']
+# FUNDIQ_desc_old['HHI-IQ7'] = FUNDIQ_desc_old['HH1_IQ']
+# FUNDIQ_desc_old['HHI-IQ6'] = FUNDIQ_desc_old['HH2_IQ']
 
 
 FUNDABS_desc['NDIVP'] = 1-FUNDABS_desc['DIVP']
 FUNDABS_desc['UR'] = 1-FUNDABS_desc['RATED']
 FUNDIQ_desc['NDIVP'] = 1-FUNDIQ_desc['DIVP']
 
-FUNDABSIQ = FUNDIQ_desc
+
 
 FUNDABS_desc = FUNDABS_desc.drop_duplicates(subset=['gvkey', 'fyear'])
 FUNDIQ_desc = FUNDIQ_desc.drop_duplicates(subset=['gvkey', 'fyear'])
+
+FUNDABSIQ = FUNDIQ_desc
 FUNDABSIQ = FUNDABSIQ.drop_duplicates(subset=['gvkey', 'fyear'])
 
-FUNDABSIQ = FUNDABSIQ[FUNDABSIQ.BLEV <= 1]
+FUNDIQ_desc = FUNDIQ_desc.drop_duplicates(subset=['gvkey', 'fyear'])
+
+#FUNDABSIQ = FUNDABSIQ[FUNDABSIQ.BLEV <= 1]
 FUNDIQ_desc = FUNDIQ_desc[FUNDIQ_desc.BLEV <= 1]
 FUNDABS_desc = FUNDABS_desc[FUNDABS_desc.BLEV <= 1]
 FUNDABSN = FUNDABS_desc[FUNDABS_desc.fyear >= 2002]
-print(len(FUNDABSN))  # 39864 40442
-print(len(FUNDABSIQ))  # 35449 35928
+## Correlations
 
-FUNDABS_desc = FUNDABS_desc[FUNDABS_desc.fyear >= 1969]
-print(len(FUNDABSN))  # 39864 39864
-print(len(FUNDABSIQ))  # 35449 35449
-print(len(FUNDABS_desc))  # 151602
-
-mean_fyear = FUNDABS_desc.groupby(['fyear'])[['HHI-C5']].mean()
-median_fyear = FUNDABS_desc.groupby(['fyear'])[['HHI-C5']].median()
-
-FUNDABS_desc.groupby(['fyear'])[['HHI-C8']].mean()
-FUNDABS_desc.groupby(['fyear'])[['HHI-C8']].median()
-
-FUNDABS_desc.groupby(['fyear'])[['PROF']].mean()
-FUNDABS_desc.groupby(['fyear'])[['PROF']].median()
-
-FUNDABS_desc['PROF'].describe()
-FUNDABS_desc['PROF_cut'].describe()
-
-FUNDABS_desc['cut_income_std_10_FF48'].describe()
-FUNDABS_desc['income_std_10_FF48'].describe()
+FF = FUNDABS_desc[['OWN_C_2', 'RATED', 'GINDEX', 'AP_cut', 'INV_TOT_cut', 'AREC_TOT']]
+FF = FUNDABS_desc[['PROF_cut', 'income_std_12_cut', 'TANG_cut', 'BLEV_cut', 'AP_cut', 'INV_TOT_cut', 'AREC_TOT']]
+FF = FUNDABS_desc[['income_std_12_cut', 'income_std_4_cut', 'income_std_10_FF48']]
+FF = FUNDABS_desc[['income_std_12_cut', 'income_std_4_cut', 'cut_income_std_10_FF48']]
+FF = FUNDABS_desc[['income_std_12', 'income_std_4', 'income_std_10_FF48']]
+FF.corr()
 
 FUNDABS_desc['income_std_4_cut'].describe()
-FUNDABS_desc['AP_cut'].describe()
-FUNDABS_desc['AP'].describe()
-FUNDABS_desc.groupby(['fyear'])[['cut_income_std_10_FF48']].mean()
-FUNDABS_desc.groupby(['fyear'])[['cut_income_std_10_FF48']].median()
 
-FUNDABS_desc.groupby(['fyear'])[['income_std_10_FF48']].mean()
-FUNDABS_desc.groupby(['fyear'])[['income_std_10_FF48']].mean()
-FUNDABS_desc.groupby(['fyear'])[['income_std_10_FF48']].median()
+FF.corr()
 
-FUNDABS_desc.groupby(['fyear'])[['AP_cut']].median()
-FUNDABS_desc.groupby(['fyear'])[['AP_cut']].mean()
-FUNDABS_desc.groupby(['fyear'])[['AP']].median()
+#Make Table with the following characteristics:
+# Year mean median HHI-C5, HHI-C8, HHI-IQ7, Avg LVG, Median Levrage, Obs
+# Table 2 Description
+mean5cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C5']].mean()
+median5cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C5']].median()
+count8cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C5']].count()
+mean8cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C8']].mean()
+median8cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C8']].median()
+mean7catIQ = FUNDIQSUR.groupby(['fyear'])[['HHI-IQ7']].mean()
+median7catIQ = FUNDIQSUR.groupby(['fyear'])[['HHI-IQ7']].median()
 
-compare = FUNDABS_desc[FUNDABS_desc.fyear <= 1994]
+meanlev= FUNDABS_desc.groupby(['fyear'])[['BLEV']].mean()
+medianlev = FUNDABS_desc.groupby(['fyear'])[['BLEV']].median()
 
-compare['cut_income_std_10_FF48'].describe()
-compare['income_std_10_FF48'].describe()
+combo = [mean5cat, median5cat, mean8cat, median8cat, mean7catIQ, median7catIQ, meanlev, medianlev] # , count8cat]
+table2 = pd.concat(combo, axis=1)
+print(table2.round(decimals=4))
 
-print(len(FUNDABSN))  # 39864
-print(len(FUNDABSIQ))  # 35449
-# Get the median firm and show the 5 categories in 1979 and then 2018
-median_79 = FUNDABS_desc[(FUNDABS_desc['HHI-C5'] <= median_fyear.loc[1979][0] + 0.0009) &
-                         (FUNDABS_desc['HHI-C5'] >= median_fyear.loc[1979][0] - 0.0009) &
-                         (FUNDABS_desc.fyear == 1979)]
+#UR
 
-median_18 = FUNDABS_desc[(FUNDABS_desc['HHI-C5'] <= median_fyear.loc[2018][0] + 0.0001) &
-                         (FUNDABS_desc['HHI-C5'] >= median_fyear.loc[2018][0] - 0.0001) &
-                         (FUNDABS_desc.fyear == 2018)]
-check_list = ['gvkey', 'fyear', 'at', 'TOTALDEBT_C', 'AT', 'RATED', 'SUB_C', 'SBN_C', 'BD_C', 'CL_C', 'SHORT_C',
-              'HHI-C8', 'HHI-C5']
+mean7catIQ = FUNDIQ_desc.groupby(['fyear'])[['HHI-IQ7']].mean()
+median7catIQ = FUNDIQ_desc.groupby(['fyear'])[['HHI-IQ7']].median()
 
-checki = FUNDABS_desc[check_list]
-check = checki[checki.gvkey == 6845]
+mean5cat = FUNDABSUR.groupby(['fyear'])[['HHI-C5']].mean()
+median5cat = FUNDABSUR.groupby(['fyear'])[['HHI-C5']].median()
+count8cat = FUNDABSUR.groupby(['fyear'])[['HHI-C5']].count()
+mean8cat = FUNDABSUR.groupby(['fyear'])[['HHI-C8']].mean()
+median8cat = FUNDABSUR.groupby(['fyear'])[['HHI-C8']].median()
+mean7catIQ = FUNDABSUR.groupby(['fyear'])[['HHI-IQ7']].mean()
+median7catIQ = FUNDABSUR.groupby(['fyear'])[['HHI-IQ7']].median()
 
-FUNDABSIQ['SSS'] = 1
-FUNDABSNI = pd.merge(FUNDABSN, FUNDABSIQ[['gvkey', 'datadate', 'SSS']], left_on=['gvkey', 'datadate'],
-                     right_on=['gvkey', 'datadate'], how='left')
+meanlev= FUNDABUR.groupby(['fyear'])[['BLEV']].mean()
+medianlev = FUNDABUR.groupby(['fyear'])[['BLEV']].median()
 
-i = FUNDABSNI['SSS'].sum() #34313
+combo = [mean5cat, median5cat, mean8cat, median8cat, meanlev, medianlev, count8cat]
+table2 = pd.concat(combo, axis=1)
+table2 = pd.concat(combo, axis=1)
+print(table2.round(decimals=4))
 
-FUNDABSNI = FUNDABSNI[FUNDABSNI.SSS.isnull()]
-print(len(FUNDABSNI))  # 5551
+table2.apply(lambda row: Functions.re_parameters(row.values.tolist()))
+table2.apply(lambda row: print((row.values.tolist())))
 
-# FUNDABSN['SSSS'] = 1
-FUNDABSIQI = pd.merge(FUNDABSIQ, FUNDABSN[['gvkey', 'datadate', 'SSSS']], left_on=['gvkey', 'datadate'],
-                      right_on=['gvkey', 'datadate'], how='left')
+data2 = data2.apply(lambda row: sort_Q5(row, quintile_holder, 'AP_cut', 'AP'), axis=1)
 
-i = FUNDABSIQI['SSSS'].sum()  # 34313
 
-FUNDABSIQI = FUNDABSIQI[FUNDABSIQI.SSSS.isnull()]
-print(len(FUNDABSIQI))  # 1136
 
-# Simple statas by CR
+# Simple stata by CR
 UR = FUNDABS_desc[FUNDABS_desc.UR == 1]
 LJ = FUNDABS_desc[FUNDABS_desc.LJUNK == 1]
 BB = FUNDABS_desc[FUNDABS_desc.BB == 1]
@@ -150,7 +140,6 @@ LJ.groupby(['fyear'])[['HHI-C5']].mean()
 LJ.groupby(['fyear'])[['HHI-C5']].median()
 
 ########## Median Junk firms  ##########
-
 median_fyearLJ = LJ.groupby(['fyear'])[['HHI-C5']].median()
 
 median_LJ86 = LJ[(LJ['HHI-C5'] <= median_fyearLJ.loc[1986][0] + 0.005) &
