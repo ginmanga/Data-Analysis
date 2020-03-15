@@ -192,16 +192,24 @@ Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP5"], 
 Functions.plot_maker(['HHI-IQ6'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='mean', label=0)
 
 FUNDABS_desc[b].groupby(FUNDABS_desc['fyear']).sum()
-S = FUNDABS_desc[FUNDABS_desc.S_3==1]
+S = FUNDABS_desc[FUNDABS_desc.S_2==1]
 b = ['UR', 'C/B', 'BB', 'BBB', 'A', 'AA/AAA']
-b = ['C/B', 'BB', 'BBB', 'A', 'AA/AAA']
+b = ['UR', 'C/B', 'BB', 'BBB', 'A', 'AA/AAA']
 b = ['Small', 'Medium', 'Large']
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc[FUNDABS_desc.fyear<1995], b, save=[0, dir_plots, "DIVP5"], year=1986, method='mean', label=1)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc[FUNDABS_desc.fyear<1995], b, save=[0, dir_plots, "DIVP8"], year=1986, method='mean', label=0)
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc[FUNDABS_desc.fyear<1995], b, save=[0, dir_plots, "DIVP5"], year=1986, method='median', label=1)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc[FUNDABS_desc.fyear<1995], b, save=[0, dir_plots, "DIVP8"], year=1986, method='median', label=0)
 
-S[b5].groupby(S['fyear']).sum()
+.loc[elem[0]:elem[1]]
+check_p = S[b].groupby(S['fyear']).sum()
+check_p = check_p.loc[1986:2018]
+sum = S['C/B'].groupby(S['fyear']).count()
+sum = sum.loc[1986:2018]
+
+s = check_p[b].div(sum, axis=0)
+
+oo = pd.merge(check_p, sum, left_index=True, right_index=True)
 
 a = ['SUB_CPCT', 'SBN_CPCT', 'BD_CPCT', 'CL_CPCT', 'SHORT_CPCT']
 a = ['SUB_CPCT', 'SBN_CPCT', 'BD_CPCT', 'CL_CPCT', 'SHORT_CPCT']

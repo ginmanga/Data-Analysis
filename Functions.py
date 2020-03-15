@@ -667,3 +667,69 @@ def trend_parameters(data, trend, periods):
                 holder_par[index].extend(empty)
                 holder_std[index].extend(empty)
     return holder_par, holder_std
+
+
+def tempish(data, var_1=[], var_2=[], var_3=[], options=[], methods = [], grp=0, count=0, time_var='fyear', sample_name=''):
+    if grp == 0:
+        temp = data
+    else:
+        temp = data[data[grp] == 1]
+    holder = []
+    holder_new = []
+    for index, elem in enumerate(methods):
+        name = 'temp' + str(index)
+        name = getattr(temp.groupby([time_var])[var_1], elem)
+        holder.append(name())
+    for index, elem in enumerate(holder):
+        #print(elem)
+        #print(var_2[index])
+        elem = change_names(elem, var_1, create_names(var_1, var_2[index], var_3, options))
+        holder_new.append(elem)
+    if count == 1:
+        count = temp.groupby([time_var])[var_1[0]].count().to_frame()
+        name_obs = 'Obs.' + ' ' + sample_name
+        count = count.rename(columns={var_1[0]: name_obs})
+        holder_new.append(count)
+    return pd.concat(holder_new, axis=1)
+
+def tempish_old(data, var_1=[], var_2=[], var_3=[], options=[], methods = [], grp=0):
+    if grp == 0:
+        temp = data
+    else:
+        temp = data[data[grp] == 1]
+    mean_temp = temp.groupby(['fyear'])[var_1].mean()
+    median_temp = temp.groupby(['fyear'])[var_1].median()
+    # sumobscomp_temp = FUNDABS_desc_s1.groupby(['fyear'])[var_1[0]].count()
+    mean_temp = change_names(mean_temp, var_1, create_names(var_1, var_2[0], var_3, options))
+    median_temp = change_names(median_temp, var_1, create_names(var_1, var_2[1], var_3, options))
+    # sumobscomp_temp = sumobscomp_temp.rename(columns={'HHI-C5': 'Obs. Compustat'})
+    return pd.concat([mean_temp, median_temp], axis=1)
+
+
+def create_names(var_1, var_2, var_3=[], options=[]):
+    new_names = []
+    if options == []:
+        for index, elem in enumerate(var_1):
+            temp = [var_2 + ' ' + var_1[index]]
+            new_names.extend(temp)
+    else:
+        for index, elem in enumerate(var_1):
+            if options[index] == 0:
+                temp = [var_2 + ' ' + var_1[index]]
+                new_names.extend(temp)
+            if options[index] == 1:
+                temp = [var_2 + ' ' + var_3[index]]
+                new_names.extend(temp)
+            if options[index] == 2:
+                temp = [var_2]
+                new_names.extend(temp)
+            if options[index] == 3:
+                temp = [var_3[index] + ' '+ var_2 + ' ' + var_1[index]]
+                new_names.extend(temp)
+    return new_names
+
+def change_names(data, var_1, var_2):
+    """Takes a list of variables and changes the name to var_2"""
+    for index, elem in enumerate(var_1):
+        data = data.rename(columns={var_1[index]: var_2[index]})
+    return data
