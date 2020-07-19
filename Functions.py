@@ -40,11 +40,15 @@ def pct_calculator(x, y, name, df, options=0, denominators=[], selection=[]):
     return df
 
 
-def plot_maker(a, c, b=[], save=[0], year=1986, method='mean', label=0, sep_label=0):
+def plot_maker(a, c, b=[], save=[0], year=1986, method='mean', label=0, sep_label=0, d=0, e=[], yeare=2018):
     """Functions takes and makes plots"""
     #a = variable to plot
     #b = group by, list with the columns want to use to group by
     #c = dataset
+    #d = second data set
+    #e variables for second data set
+    c = c[c.fyear >= year]
+    c = c[c.fyear <= yeare]
     colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'black', 'palegreen']
     color_code = 0
     print(len(a))
@@ -57,10 +61,24 @@ def plot_maker(a, c, b=[], save=[0], year=1986, method='mean', label=0, sep_labe
         series_temp = series_temp[series_temp.fyear >= year]
         series_temp = series_temp.astype({'fyear': 'int64'})
         for i in a:
+            print(i)
             o = getattr(series_temp.groupby(['fyear'])[[i]], method) #calls method given by user
             series_temp_1 = o().reset_index()
             plt.plot(series_temp_1['fyear'], series_temp_1[i], color=colors[color_code], label=i)
             color_code += 1
+        if len(e) > 1:
+            main_varsa = ['fyear']
+            main_varsa.extend(e)
+            print(main_varsa)
+            series_tempa = d[main_varsa]
+            series_tempa = series_tempa[series_tempa.fyear >= year]
+            series_tempa = series_tempa.astype({'fyear': 'int64'})
+            for i in e:
+                print(i)
+                oa = getattr(series_tempa.groupby(['fyear'])[[i]], method) #calls method given by user
+                series_temp_1a = oa().reset_index()
+                plt.plot(series_temp_1a['fyear'], series_temp_1a[i], color=colors[color_code], label=i)
+                color_code += 1
     if (len(a) == 1) and (len(b) == 0):
         main_vars = ['fyear']
         main_vars.extend(a)
@@ -288,9 +306,12 @@ def run_regressions_a(dataa, datab, datac, endog1, endog2, endog3, exog1, exog2,
         results.append(mod.fit(cov_type='clustered', clusters=datac.gvkey))
     return results
 
-def regressions(data, endog, exog, options, clusterfirm):
+def regressions(data, endog, exog, options, clusterfirm, constant):
     #results = []
-    exog = sm.add_constant(data[exog])
+    if constant == 1:
+        exog = sm.add_constant(data[exog])
+    if constant == 0:
+        exog = data[exog]
     if options == 0:
         mod = PanelOLS(data[endog], exog, entity_effects=True, time_effects=True)
     if options == 1:
@@ -306,14 +327,11 @@ def regressions(data, endog, exog, options, clusterfirm):
         results = mod.fit()
     return results
 
-def run_regressions_4(data=[], endog=[], exog=[], options=0, clusterfirm=0):
+def run_regressions_4(data=[], endog=[], exog=[], options=0, clusterfirm=0, constant=1):
     results = []
-    print(endog)
     for index, elem in enumerate(data):
         for i in endog[index]:
-            print(type(elem))
-            print(i)
-            results.append(regressions(elem, i, exog, options, clusterfirm))
+            results.append(regressions(elem, i, exog, options, clusterfirm, constant))
     return results
 
 def run_regressions_2(data, endog=[], exog=[], options=0):
@@ -377,7 +395,7 @@ def re_parameters(t):
     return t
 
 
-def prep_params(reg_results, endog=[], exog=[], param=[], pvalues=[], stderrors=[]):
+def prep_params(reg_results, endog=[], exog=[], param=[], pvalues=[], stderrors=[], constant=1):
     """Function to take a list of endog, exog variables, estimated PARAMETERS, pvalues and t-stats"""
     list_para = []
     list_std = []
@@ -392,7 +410,11 @@ def prep_params(reg_results, endog=[], exog=[], param=[], pvalues=[], stderrors=
             t = re_parameters(t)
             s = check_pvalues(t, elem.pvalues.values[i])
             std = "(" + str(round(elem.std_errors.values[i], 3)).ljust(5, '0') + ")"
-            if e != 'const':
+            if constant == 1:
+                if i != 0:
+                    new_para.append(s)
+                    new_std.append(std)
+            if constant == 0:
                 new_para.append(s)
                 new_std.append(std)
         new_para = ['\ ' + i if i[0] != '-' else i for i in new_para ]
@@ -403,14 +425,21 @@ def prep_params(reg_results, endog=[], exog=[], param=[], pvalues=[], stderrors=
     return [list_para, list_std, list_obs, list_r2]
 
 
-def print_reg(endog, exog, reg_results, fixed=['year', 'industry'], model='OLS'):
+def print_reg(endog, exog, reg_results, fixed=['year', 'industry'], model='OLS', constant=1):
+    print(len(exog))
+    print(len(reg_results[0][0]))
+    if constant == 1:
+        a = 0
+    if constant == 0:
+        a = 1
     if len(endog) != len(reg_results[0]):
         print("Model number incorrect")
         return None
-    if len(exog) != len(reg_results[0][0])-1:
+    if len(exog) != len(reg_results[0][0]) - a:
         print("Number of parameters does not match")
         return None
-    rows = len(reg_results[0][0]) +  len(reg_results) - 2 + 2
+    print("HERE????")
+    rows = len(reg_results[0][0]) +  len(reg_results) - a
     second_line = [" "]
     second_line.extend(["(" + str(i) + ")" for i in range(1, len(endog) + 1)])
     second_line = ["\\multicolumn{1}{c}{" + i + "}" for i in second_line]
@@ -507,6 +536,7 @@ def print_reg_2(endog, exog, reg_results, fixed=['year', 'industry'], model='OLS
 
 
 def prep_latex_table(a):
+    print(a)
     list_all = []
     begin1 = [r"\begin{table}[H]"]
     begin2 = [r"\centering"]
@@ -669,7 +699,10 @@ def trend_parameters(data, trend, periods):
     return holder_par, holder_std
 
 
-def tempish(data, var_1=[], var_2=[], var_3=[], options=[], methods = [], grp=0, count=0, time_var='fyear', sample_name=''):
+def tempish(data, var_1=[], var_2=[], var_3=[], options=[], methods=[], grp=0, count=0, time_var='fyear', sample_name=''):
+    """Describe this please 潘乔"""
+    if options==[]:
+        options = [0] * (len(var_1))
     if grp == 0:
         temp = data
     else:

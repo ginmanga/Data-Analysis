@@ -32,6 +32,8 @@ bb = ['C', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA']
 bbb = ['UR', 'C', 'B', 'BB', 'BBB', 'A', 'HIG']
 bbbb = ['B', 'BB', 'BBB', 'A', 'HIG']
 b5 = ['UR', 'LJUNK', 'BB', 'LIG', 'HIG']
+b5 = ['UR', 'LJUNK', 'BB', 'LIG']
+FUNDABS_desc['dual_ext'] = np.where(FUNDABS_desc['fyear'] <= 1978, np.nan, FUNDABS_desc['dual_ext'])
 
 FUNDABS_desc['C/B'] = FUNDABS_desc['LJUNK']
 FUNDABS_desc['BBB/A'] = FUNDABS_desc['LIG']
@@ -51,6 +53,14 @@ FUNDABS_desc['SUBNOTCONV'] = FUNDABS_desc['SUBNOTCONV_CPCT']
 FUNDABS_desc['SUBCONV'] = FUNDABS_desc['SUBCONV_CPCT']
 FUNDABS_desc['CONV'] = FUNDABS_desc['CONV_CPCT']
 
+a = ['SBN_IQPCT', 'SUB_IQPCT', 'DC_IQPCT', 'TL_IQPCT','CL_IQPCT', 'CP_IQPCT', 'OTHER_IQPCT']
+FUNDIQ_desc['SBN'] = FUNDIQ_desc['SBN_IQPCT']
+FUNDIQ_desc['SUB'] = FUNDIQ_desc['SUB_IQPCT']
+FUNDIQ_desc['DC'] = FUNDIQ_desc['DC_IQPCT']
+FUNDIQ_desc['TL'] = FUNDIQ_desc['TL_IQPCT']
+FUNDIQ_desc['CL'] = FUNDIQ_desc['CL_IQPCT']
+FUNDIQ_desc['CP'] = FUNDIQ_desc['CP_IQPCT']
+FUNDIQ_desc['OTHER'] = FUNDIQ_desc['OTHER_IQPCT']
 
 FUNDABS_desc['NDIVP'] = 1-FUNDABS_desc['DIVP']
 
@@ -73,39 +83,148 @@ FS = FUNDABS_desc[FUNDABS_desc.gvkey <= 1240]
 FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "AT", 'S', grps=3, quintiles=[0.25, 0.5, 1],
                                        sub_grp='EXCHCD', sub_grp_val=1)
 
+#1 Indexes, mean median full
+c = FUNDIQ_desc[FUNDIQ_desc.fyear >= 2002]
+Functions.plot_maker(['HHI-C5', 'HHI-C8'], FUNDABS_desc, b=[], save=[1, dir_plots, "mean58"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-C5', 'HHI-C8'], FUNDABS_desc, b=[], save=[1, dir_plots, "median58"], year=1969, method='median', label=0)
+
+
+Functions.plot_maker(['HHI-IQ7', 'HHI-IQ6'], FUNDIQ_desc, b=[], save=[1, dir_plots, "mean76"], year=2002, method='mean', label=1)
+Functions.plot_maker([ 'HHI-IQ7', 'HHI-IQ6'], FUNDIQ_desc, b=[], save=[1, dir_plots, "median76"], year=2002, method='median', label=0)
+
+Functions.plot_maker(['HHI-C5', 'HHI-C8'], FUNDABS_desc, b=[], save=[1, dir_plots, "mean582002"], year=2002,
+                     method='mean', label=1, d=FUNDIQ_desc, e=['HHI-IQ7', 'HHI-IQ6'])
+Functions.plot_maker(['HHI-C5', 'HHI-C8'], FUNDABS_desc, b=[], save=[1, dir_plots, "median582002"],
+                     year=2002, method='median', label=0, d=FUNDIQ_desc, e=['HHI-IQ7', 'HHI-IQ6'])
+
+# DEBT TYPES:
+
+a = ['SBN', 'SUB', 'DLTO', 'CL', 'SHORT']
+a = ['DD', 'DN', 'SUBNOTCONV', 'SUBCONV', 'CONV']
+a = ['SUBNOTCONV', 'SUBCONV', 'CONV']
+a = ['SBN_IQPCT', 'SUB_IQPCT', 'DC_IQPCT', 'TL_IQPCT','CL_IQPCT', 'CP_IQPCT', 'OTHER_IQPCT']
+a = ['SBN', 'SUB', 'DC', 'TL','CL', 'CP', 'OTHER']
+
+Functions.plot_maker(a, FUNDABS_desc, b=[], save=[0, dir_plots, "ACCOMP2002"],
+                     year=1999, method='mean', label=1)
+Functions.plot_maker(a, FUNDABS_desc, b=[], save=[0, dir_plots, "HHICA"],
+                     year=1969, method='median', label=1)
+
+Functions.plot_maker(a, FUNDIQ_desc, b=[], save=[1, dir_plots, "AVERAGEIQ"],
+                     year=1969, method='mean', label=1)
+
+FUNDABS_desc.groupby(['fyear'])[['SUBCONV']].mean()
+check = FUNDABS_desc[FUNDABS_desc.SUBCONV > 0]
+check = check[check.fyear == 2003]
+check = check[['gvkey','SUBNOTCONV', 'SUBCONV', 'CONV', 'SBN',
+               'SUB', 'DLTO', 'CL', 'SHORT']]
+check[check['SUBCONV'] > 0]
+newset = pd.merge(FUNDABS_desc)
+ch2 = FUNDABS_desc[FUNDABS_desc.gvkey.isin([2193, 2346, 2536])]
+ch2 = ch2[['gvkey','fyear', 'SUBNOTCONV', 'SUBCONV', 'CONV', 'SBN',
+               'SUB', 'DLTO', 'CL', 'SHORT']]
+Functions.plot_maker(a, FUNDABS_desc[FUNDABS_desc.S_2 == 1], b=[], save=[0, dir_plots, "HHICA"],
+                     year=1969, method='mean', label=1)
+Functions.plot_maker(a, FUNDABS_desc[FUNDABS_desc.S_3 == 1], b=[], save=[0, dir_plots, "HHICA"],
+                     year=1969, method='mean', label=1)
+
+a = ['DD_CPCT', 'DN_CPCT', 'SUBNOTCONV_CPCT', 'SUBCONV_CPCT', 'CONV_CPCT']
+Functions.plot_maker(a, FUNDABS_desc[FUNDABS_desc.S_1 == 1], b=[], save=[0, dir_plots, "HHICA"],
+                     year=1969, method='mean', label=1)
+Functions.plot_maker(a, FUNDABS_desc[FUNDABS_desc.S_2 == 1], b=[], save=[0, dir_plots, "HHICA"],
+                     year=1969, method='mean', label=1)
+Functions.plot_maker(a, FUNDABS_desc[FUNDABS_desc.S_3 == 1], b=[], save=[0, dir_plots, "HHICA"],
+                     year=1969, method='mean', label=1)
+
 #Size
 b = ['Small', 'Medium', 'Large']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "sizenumbC"], year=1969, method='count', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "sizenumbIQ"], year=1969, method='count', label=0)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
+FUNDABS_desc['nod'] = 1 - FUNDABS_desc['dual_stock']
+b = ['nod', 'dual_stock']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, ""], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, ""], year=1969, method='median', label=0)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, ""], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, ""], year=1969, method='mean', label=0)
+count8cat = FUNDIQ_desc[FUNDIQ_desc.Small==1].groupby(['fyear'])[['HHI-IQ7']].count()
+FUNDIQ_desc[FUNDIQ_desc.Medium==1].groupby(['fyear'])[['HHI-IQ7']].count()
+FUNDIQ_desc[FUNDIQ_desc.FUNDIQ_desc==1].groupby(['fyear'])[['HHI-IQ7']].count()
 #Ownership
 b = ['OWN_A_1', 'OWN_A_2']
 b = ['OWN_B_1', 'OWN_B_2']
 b = ['OWN_C_1', 'OWN_C_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB8"], year=1969, method='median', label=0)
 #Governance
 b = ['GIGRP_1', 'GIGRP_2']
-b = ['NOTDUAL', 'DUALCLASS']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=2002, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=2002, method='median', label=1)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+FUNDABS_desc['not_dual'] = 1 - FUNDABS_desc['dual']
+b = ['not_dual', 'dual']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1978, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+b = ['INSTOWN_1', 'INSTOWN_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+
+b = ['board-independence_1', 'board-independence_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='mean', label=1)
+
 #Other firm characteristics
 b = ['DIVP', 'NDIVP']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=2002, method='median', label=1)
 b = ['MB_1', 'MB_2']
 b = ['PROF_1', 'PROF_2']
 b = ['CASH_1', 'CASH_2']
 b = ['TANG_1', 'TANG_2']
 b = ['CAPEX_1', 'CAPEX_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
 b = ['RD_1', 'RD_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
 b = ['CFV_1', 'CFV_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
 b = ['AP_1', 'AP_2']
 b = ['INV_1', 'INV_2']
 b = ['AR_1', 'AR_2']
 b = ['WCAP_1', 'WCAP_2']
 b = ['BLEV_1', 'BLEV_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
 #Size New
 b = ['MB_1', 'MB_2']
-Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
-Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "MB5"], year=1969, method='median', label=1)
 b = ['PROF_1', 'PROF_2']
-Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
-Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[1, dir_plots, "PROF5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[1, dir_plots, "PROF8"], year=1969, method='median', label=0)
 b = ['CASH_1', 'CASH_2']
-Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
-Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[1, dir_plots, "CASH5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[1, dir_plots, "CASH8"], year=1969, method='median', label=0)
 b = ['TANG_1', 'TANG_2']
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
@@ -123,8 +242,8 @@ Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], 
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
 
 b = ['INV_1', 'INV_2']
-Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
-Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "INV5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "INV8"], year=1969, method='median', label=0)
 
 b = ['AR_1', 'AR_2']
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
@@ -133,8 +252,8 @@ b = ['WCAP_1', 'WCAP_2']
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
 b = ['BLEV_1', 'BLEV_2']
-Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
-Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[1, dir_plots, "BLEV5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[1, dir_plots, "BLEV8"], year=1969, method='median', label=0)
 b = ['UR', 'RATED']
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1986, method='median', label=1)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1986, method='median', label=0)
@@ -179,17 +298,26 @@ Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], 
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1986, method='median', label=0)
 
 b = ['Small', 'Medium', 'Large']
-Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[1, dir_plots, "S5"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "S5"], year=2002, method='median', label=1)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[1, dir_plots, "S8"], year=1969, method='mean', label=0)
 
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc[FUNDABS_desc.fyear<2000], b, save=[0, dir_plots, "DIVP5"], year=1980, method='median', label=1)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc[FUNDABS_desc.fyear<2000], b, save=[0, dir_plots, "DIVP8"], year=1980, method='median', label=0)
 
 Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='mean', label=1)
 Functions.plot_maker(['HHI-IQ6'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
 
 Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='mean', label=1)
 Functions.plot_maker(['HHI-IQ6'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='mean', label=0)
+
+Functions.plot_maker(['HHI-C5', 'HHI-IQ7'], FUNDIQ_desc[FUNDIQ_desc.Large==1],
+                     b=[], save=[0, dir_plots, "DIVP5"], year=2002, method='median', label=1)
+Functions.plot_maker(['HHI-C5', 'HHI-IQ7'], FUNDIQ_desc[FUNDIQ_desc.Medium==1],
+                     b=[], save=[0, dir_plots, "DIVP5"], year=2002, method='median', label=1)
+Functions.plot_maker(['HHI-C5', 'HHI-IQ7'], FUNDIQ_desc[FUNDIQ_desc.Small==1],
+                     b=[], save=[0, dir_plots, "DIVP5"], year=2002, method='median', label=1)
+
 
 FUNDABS_desc[b].groupby(FUNDABS_desc['fyear']).sum()
 S = FUNDABS_desc[FUNDABS_desc.S_2==1]
@@ -200,6 +328,11 @@ Functions.plot_maker(['HHI-C5'], FUNDABS_desc[FUNDABS_desc.fyear<1995], b, save=
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc[FUNDABS_desc.fyear<1995], b, save=[0, dir_plots, "DIVP8"], year=1986, method='mean', label=0)
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc[FUNDABS_desc.fyear<1995], b, save=[0, dir_plots, "DIVP5"], year=1986, method='median', label=1)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc[FUNDABS_desc.fyear<1995], b, save=[0, dir_plots, "DIVP8"], year=1986, method='median', label=0)
+
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1998, method='mean', label=1, yeare=2004)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1998, method='mean', label=0, yeare=2004)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1998, method='median', label=1, yeare=2004)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1998, method='median', label=0, yeare=2004)
 
 .loc[elem[0]:elem[1]]
 check_p = S[b].groupby(S['fyear']).sum()
@@ -254,19 +387,22 @@ Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], 
 Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
 Functions.plot_maker(['HHI-IQ6'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
 
-FUNDABS_desc['NOTDUAL'] = 1 - FUNDABS_desc['DUALCLASS']
-FUNDABS_desc['DUALCLASS'].sum()
+FUNDABS_desc['NOTDUAL'] = 1 - FUNDABS_desc['dual_ext']
+FUNDIQ_desc['NOTDUAL'] = 1 - FUNDIQ_desc['dual_ext']
+FUNDABS_desc['DUALCLASS'] = FUNDABS_desc['dual_ext']
+FUNDIQ_desc['DUALCLASS'] = FUNDIQ_desc['dual_ext']
 FUNDABS_desc['NOTDUAL'].sum()
 FUNDABS_desc.groupby(['fyear'])[['DUALCLASS']].sum()
 b = ['NOTDUAL', 'DUALCLASS']
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='median', label=1)
-Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
-
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=2002, method='median', label=0)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='median', label=0)
 # Dividend payer
-b = ['DIVP', 'NDIVP']
-Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[1, dir_plots, "DIVP5"], year=1969, method='mean', label=1)
-Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[1, dir_plots, "DIVP8"], year=1969, method='mean', label=0)
-
+b = ['HOST_1', 'HOST_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP5"], year=1969, method='mean', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "DIVP8"], year=1969, method='mean', label=0)
+FUNDABS_desc.groupby(['fyear'])[['hostile_index']].median()
+FUNDABS_desc.groupby(['fyear', 'DUALCLASS'])[['AT']].median()
 # Size Quinile payer
 FUNDABS_desc['Q1'] = FUNDABS_desc['Q_1']
 FUNDABS_desc['Q2'] = FUNDABS_desc['Q_2']
@@ -446,7 +582,11 @@ FUNDABSHIG.groupby(['fyear'])[a].mean()
 
 
 
-
+b = ['HOST_1', 'HOST_2']
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "S5S"], year=1969, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "S8S"], year=1969, method='median', label=0)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[0, dir_plots, "SIQ77"], year=2002, method='median', label=0)
+Functions.plot_maker(['HHI-IQ6'], FUNDIQ_desc, b, save=[0, dir_plots, "SIQ66"], year=2002, method='median', label=0)
 
 
 
@@ -454,8 +594,10 @@ FUNDABSHIG.groupby(['fyear'])[a].mean()
 # Size different
 
 b = ['Small', 'Medium', 'Large']
-Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[0, dir_plots, "S5S"], year=2002, method='mean', label=1)
-Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[0, dir_plots, "S8S"], year=2002, method='mean', label=0)
+Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[1, dir_plots, "S5S"], year=2002, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[1, dir_plots, "S8S"], year=2002, method='median', label=0)
+Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[1, dir_plots, "SIQ77"], year=2002, method='median', label=0)
+Functions.plot_maker(['HHI-IQ6'], FUNDIQ_desc, b, save=[1, dir_plots, "SIQ66"], year=2002, method='median', label=0)
 
 Functions.plot_maker(['HHI-C5'], FUNDABS_desc, b, save=[1, dir_plots, "S55S"], year=2002, method='median', label=0)
 Functions.plot_maker(['HHI-C8'], FUNDABS_desc, b, save=[1, dir_plots, "S88S"], year=2002, method='median', label=0)
@@ -465,8 +607,7 @@ Functions.plot_maker(['HHI-C8'], FUNDABS_desc[FUNDABS_desc.fyear<2000], b, save=
 
 
 
-Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[1, dir_plots, "SIQ77"], year=1969, method='mean', label=0)
-Functions.plot_maker(['HHI-IQ6'], FUNDIQ_desc, b, save=[1, dir_plots, "SIQ66"], year=1969, method='mean', label=0)
+
 Functions.plot_maker(['HHI-IQ7'], FUNDIQ_desc, b, save=[1, dir_plots, "SIQ7"], year=1969, method='median', label=0)
 Functions.plot_maker(['HHI-IQ6'], FUNDIQ_desc, b, save=[1, dir_plots, "SIQ6"], year=1969, method='median', label=0)
 

@@ -18,8 +18,11 @@ data_comp_p = os.path.join('C:\\', 'Users', 'Panqiao', 'Documents', 'Research', 
 
 #FUNDABS = pd.read_csv(os.path.join(data_comp_p, "BS1DF-ready-Jan30.csv.gz"))
 
-FUNDABS = pd.read_csv(os.path.join(data_comp_p, "BS1DF-ready-March04ALL.csv.gz"))
+FUNDABS = pd.read_csv(os.path.join(data_comp_p, "BS1DF-ready-March30ALL.csv.gz"))
 #FUNDABS1 = pd.read_csv(os.path.join(datadirectory, "BS1DF-ready-Dec24.csv.gz"))
+FUNDABS = pd.read_csv(os.path.join(data_comp_p, "BS1DF-ready-APRIL16ALL.csv.gz"))
+FUNDABS = pd.read_csv(os.path.join(data_comp_p, "BS1DF-ready-APRIL20ALL.csv.gz"))
+FUNDABS = pd.read_csv(os.path.join(data_comp_p, "BS1DF-ready-APRIL24ALL.csv.gz"))
 
 FUNDABS['datadate'] = pd.to_datetime(FUNDABS['datadate'])
 FUNDABS['UR'] = 1-FUNDABS['RATED']
@@ -38,7 +41,8 @@ sample_stats_desc_C = ['AT_cut', 'size', 'MVBook_cut', 'DIVP', 'PROF_cut', 'CASH
                        'sale_std_ff48_12_1', 'sale_std_ff48_12_2', 'sale_std_ff48_9', 'sale_std_ff48_4',
                        'cut_income_std_10_FF48', 'income_std_10_FF48', 'FF48', 'sic_ch', 'AGE', 'SHORT_CPCT',
                        'SUBNOTCONV_CPCT', 'SUBCONV_CPCT', 'DD_CPCT', 'DN_CPCT', 'SBN_CPCT', 'SUB_CPCT', 'BD_CPCT',
-                       'CL_CPCT', 'INV_TOT_cut', 'AREC_TOT_cut', 'WCAP_cut', 'dm']
+                       'CL_CPCT', 'INV_TOT_cut', 'AREC_TOT_cut', 'WCAP_cut', 'dm', 'dual_stock', 'dual', 'dual_ext',
+                       'cl_4q_avg']
 
 sample_stats_desc = ['AT_cut', 'size', 'MVBook_cut', 'DIVP', 'PROF_cut', 'CASH_cut', 'TANG_cut', 'CAPEX_cut',
                      'ADVERT_cut', 'RD_cut', 'MLEV_cut', 'BLEV_cut', 'AP_cut', 'income_std_12_cut', 'income_std_9_cut',
@@ -53,8 +57,8 @@ sample_stats_desc = ['AT_cut', 'size', 'MVBook_cut', 'DIVP', 'PROF_cut', 'CASH_c
                      'sale_std_ff48_12_2', 'sale_std_ff48_4', 'cut_income_std_10_FF48', 'income_std_10_FF48',
                      'FF48', 'sic_ch', 'AGE', 'HH1', 'HH2', 'HH1_IQ', 'HH2_IQ', 'HH1_IQB', 'HH2_IQB',
                      'SHORT_CPCT', 'SUBNOTCONV_CPCT', 'SUBCONV_CPCT', 'DD_CPCT', 'DN_CPCT', 'SBN_CPCT',
-                     'SUB_CPCT', 'BD_CPCT', 'CL_CPCT', 'INV_TOT_cut', 'AREC_TOT_cut', 'WCAP_cut', 'dm', 'FF48', 'AGE',
-                     'SHRCD', 'EXCHCD']
+                     'SUB_CPCT', 'BD_CPCT', 'CL_CPCT', 'INV_TOT_cut', 'AREC_TOT_cut', 'WCAP_cut', 'dm', 'AGE',
+                     'SHRCD', 'EXCHCD', 'dual_ext', 'cl_4q_avg']
 
 sample_stats_desc_un = ['AT', 'MVBook', 'PROF', 'CASH', 'TANG', 'CAPEX', 'ADVERT', 'RD', 'MLEV', 'BLEV', 'AP',
                         'INV_TOT', 'AREC_TOT', 'WCAP']
@@ -64,7 +68,9 @@ sample_stats_desc_iq = ['CP_IQPCT', 'DC_IQPCT', 'TL_IQPCT', 'SBN_IQPCT', 'SUB_IQ
 comp_vars = ['PCT_EXCL_OPT_cut', 'PCT_INCL_EX_OPT_cut', 'PCT_INCL_UEX_OPT_cut',
              'OWN_A_1', 'OWN_A_2', 'OWN_B_1', 'OWN_B_2', 'OWN_C_1', 'OWN_C_2']
 
-gover_vars = ['DE_INC', 'GINDEX', 'DUALCLASS', 'EINDEX', 'GIGRP_1', 'GIGRP_2']
+gover_vars = ['DE_INC', 'GINDEX', 'DUALCLASS', 'EINDEX', 'GIGRP_1', 'GIGRP_2',
+              'INSTOWN_1', 'INSTOWN_2', 'InstOwn_Perc', 'ind_dir_per_ISS',
+              'board-independence_1', 'board-independence_2']
 
 take_vars = ['hostile_index', 'hostile_index_L1', 'hostile_index_L2',
             'hostile_index_L3', 'hostile_index_L4']
@@ -86,10 +92,10 @@ print(len(FUNDABS))  # 376277 376347
 
 FUNDABS_temp = FUNDABS[FUNDABS[['NOTMISSING', 'EXCHANGE', 'USCOMMON']].all(axis='columns')]
 print(len(FUNDABS_temp))  # 189077 183296
-FUNDABS_temp[FUNDABS_temp.fyear < 1969]
+#FUNDABS_temp[FUNDABS_temp.fyear < 1969]
 
-FUNDABS['PROF_cut'].describe()
-FUNDABS['PROF'].describe()
+#FUNDABS['PROF_cut'].describe()
+#FUNDABS['PROF'].describe()
 
 FUNDABS, c = Functions.rol_vars(FUNDABS, 'PROF', 'income_std_10_FF48', group=['gvkey', 'datadate'], onn='datadate',
                                 window=10, levels=2, group1=['gvkey', 'datadate', 'fyear', 'FF48'],
@@ -98,8 +104,8 @@ FUNDABS, c = Functions.rol_vars(FUNDABS, 'PROF', 'income_std_10_FF48', group=['g
 FUNDABS, c = Functions.rol_vars(FUNDABS, 'PROF_cut', 'cut_income_std_10_FF48', group=['gvkey', 'datadate'],
                                 onn='datadate', window=10, levels=2, group1=['gvkey', 'datadate', 'fyear', 'FF48'],
                                 group2=['FF48', 'fyear'])
-FUNDABS['income_std_10_FF48'].describe()
-FUNDABS['cut_income_std_10_FF48'].describe()
+#FUNDABS['income_std_10_FF48'].describe()
+#FUNDABS['cut_income_std_10_FF48'].describe()
 
 FUNDABS['SAMPLE_TIME'] = np.where(FUNDABS['fyear'] >= 1969, 1, 0)
 FUNDABS_desc = FUNDABS[FUNDABS[['NOTMISSING', 'SAMPLE', 'EXCHANGE', 'USCOMMON']].all(axis='columns')]
@@ -112,16 +118,16 @@ FUNDABS_desc = FUNDABS_desc.reset_index(drop=True)
 
 print(len(FUNDABS_desc))  # 143641 153294 154263 142759
 
-FUNDABS_desc.to_csv(os.path.join(datadirectory, "FUNDABSDESC-March04.csv.gz"), index=False, compression='gzip')
-FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABSDESC-March04.csv.gz"))
+FUNDABS_desc.to_csv(os.path.join(datadirectory, "FUNDABSDESC-APRIL24ALL.csv.gz"), index=False, compression='gzip')
+FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABSDESC-APRIL24ALL.csv.gz"))
 #CAPIQ
 
 
 # FUNDIQ = pd.read_csv(os.path.join(data_comp_p, "IQ-ready-Jan30.csv.gz"))
-FUNDIQ = pd.read_csv(os.path.join(data_comp_p, "IQ-ready-March04ALL.csv.gz"))
+FUNDIQ = pd.read_csv(os.path.join(data_comp_p, "IQ-ready-APRIL16ALL.csv.gz"))
 FUNDIQ['datadate'] = pd.to_datetime(FUNDIQ['datadate'])
 
-FUNDIQ = pd.merge(FUNDIQ, FUNDABS[['gvkey', 'datadate', 'cut_income_std_10_FF48', 'income_std_10_FF48']],
+FUNDIQ = pd.merge(FUNDIQ, FUNDABS[['gvkey', 'datadate', 'cut_income_std_10_FF48', 'income_std_10_FF48', 'dual_ext']],
                   left_on=['gvkey', 'datadate'], right_on=['gvkey', 'datadate'], how='left')
 
 FUNDIQ = FUNDIQ.sort_values(by=['gvkey', 'datadate'])
@@ -188,8 +194,8 @@ id.extend(take_vars)
 print(id)
 FUNDIQ_desc = FUNDIQ_desc[id]
 
-FUNDIQ_desc.to_csv(os.path.join(datadirectory, "FUNDIQDESC-March12.csv.gz"), index=False, compression='gzip')
-FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQDESC-March12.csv.gz"))
+FUNDIQ_desc.to_csv(os.path.join(datadirectory, "FUNDIQDESC-APRIL24ALL.csv.gz"), index=False, compression='gzip')
+FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQDESC-APRIL24ALL.csv.gz"))
 # FINAL SAMPLE FOR STATS
 
 
@@ -219,7 +225,7 @@ print(len(FUNDIQ_lag))  # 33214
 FUNDIQ_lag = FUNDIQ_lag[FUNDIQ_lag.FF48 != 49]
 print(len(FUNDIQ_lag))  # 33133
 
-FUNDIQ_lag.to_csv(os.path.join(datadirectory, "FUNDIQ_lag-March09.csv.gz"), index=False, compression='gzip')
+FUNDIQ_lag.to_csv(os.path.join(datadirectory, "FUNDIQ_lag-APRI24ALL.csv.gz"), index=False, compression='gzip')
 #####  Lag exogenous variables and print the dan thing
 
 id = ['gvkey', 'datadate', 'fyear', 'NOTMISSING', 'SAMPLE', 'SAMPLE_TIME', 'EXCHANGE', 'USCOMMON', 'TOTALDEBT_C']
@@ -258,14 +264,14 @@ print(len(FUNDABS_lag))   # 152886
 FUNDABS_lag = FUNDABS_lag[FUNDABS_lag.FF48 != 49]
 print(len(FUNDABS_lag))  # 145317 152556, 151291
 
-FUNDABS_lag.to_csv(os.path.join(datadirectory, "FUNDABS_lag-March04.csv.gz"), index=False, compression='gzip')
+FUNDABS_lag.to_csv(os.path.join(datadirectory, "FUNDABS_lag-APRIL24ALL.csv.gz"), index=False, compression='gzip')
 
 print(len(FUNDABS_lag))
 FUNDABS_lag = FUNDABS_lag.dropna(subset=['HH2', 'size_cut_lag'])
 FUNDABS_lag = FUNDABS_lag[FUNDABS_lag[['NOTMISSING', 'SAMPLE', 'EXCHANGE', 'USCOMMON', 'SAMPLE_TIME']].all(axis='columns')]
 print(len(FUNDABS_lag))
 #Time periods
-
+FUNDABS_lag.groupby(['fyear'])['dual_ext'].mean()
 
 #Create groups of two for most variables, both samples
 
@@ -275,6 +281,11 @@ FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "AT", 'S', grps=3,
 
 FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "AT", 'S', grps=3, quintiles=[0.25, 0.5, 1],
                                        sub_grp='EXCHCD', sub_grp_val=1)
+
+FUNDABS_desc['NYSE_1'] = np.where(FUNDABS_desc.EXCHCD == 1, 1, 0)
+FUNDABS_desc['NYSE_2'] = np.where(FUNDABS_desc.EXCHCD == 1, 0, 1)
+FUNDIQ_desc['NYSE_1'] = np.where(FUNDIQ_desc.EXCHCD == 1, 1, 0)
+FUNDIQ_desc['NYSE_2'] = np.where(FUNDIQ_desc.EXCHCD == 1, 0, 1)
 
 FUNDABS_desc['Small'] = FUNDABS_desc['S_1']
 FUNDABS_desc['Medium'] = FUNDABS_desc['S_2']
@@ -289,8 +300,7 @@ FUNDIQ_desc['Large'] = FUNDIQ_desc['S_3']
                'CAPEX_cut', 'ADVERT_cut', 'RD_cut', 'MLEV_cut', 'BLEV_cut', 'AP_cut', 'income_std_12_cut',
                'income_std_9_cut', 'income_std_4_cut', 'INV_TOT_cut', 'AREC_TOT_cut', 'WCAP_cut']
 
-FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "MVBook_cut", 'MB', grps=2)
-FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "MVBook_cut", 'MB', grps=2)
+
 ['MB_1', 'MB_2']
 ['PROF_1', 'PROF_2']
 ['CASH_1', 'CASH_2']
@@ -304,6 +314,11 @@ FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "MVBook_cut", 'MB', 
 ['WCAP_1', 'CWCAP_2']
 ['BLEV_1', 'BLEV_2']
 
+FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "MVBook_cut", 'MB', grps=2)
+FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "MVBook_cut", 'MB', grps=2)
+FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "CAPEX_cut", 'CAPEX', grps=2)
+FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "CAPEX_cut", 'CAPEX', grps=2)
+
 FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "PROF_cut", 'PROF', grps=2)
 FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "PROF_cut", 'PROF', grps=2)
 
@@ -312,9 +327,6 @@ FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "CASH_cut", 'CASH', 
 
 FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "TANG_cut", 'TANG', grps=2)
 FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "TANG_cut", 'TANG', grps=2)
-
-FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "CAPEX_cut", 'CAPEX', grps=2)
-FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "CAPEX_cut", 'CAPEX', grps=2)
 
 FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "RD_cut", 'RD', grps=2)
 FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "RD_cut", 'RD', grps=2)
@@ -337,6 +349,49 @@ FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "WCAP_cut", 'WCAP', 
 FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "BLEV_cut", 'BLEV', grps=2)
 FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "BLEV_cut", 'BLEV', grps=2)
 
+FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "hostile_index_L1", 'HOST', grps=2)
+FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "hostile_index_L1", 'HOST', grps=2)
 
-FUNDIQ_desc.to_csv(os.path.join(datadirectory, "FUNDIQ_GRPS-March12.csv.gz"), index=False, compression='gzip')
-FUNDABS_desc.to_csv(os.path.join(datadirectory, "FUNDABS_GRPS-March12.csv.gz"), index=False, compression='gzip')
+FUNDIQ_desc.to_csv(os.path.join(datadirectory, "FUNDIQ_GRPS-may5ALL.csv.gz"), index=False, compression='gzip')
+FUNDABS_desc.to_csv(os.path.join(datadirectory, "FUNDABS_GRPS-may5ALL.csv.gz"), index=False, compression='gzip')
+
+FUNDABS_desc[FUNDABS_desc.BLEV == 1]
+
+### Make group as follows
+# Treatment board independece < 0.5 in 2001
+# = np.where((FUNDABS.HH2 <= 1.1) & (FUNDABS.TOTALDEBT_C > 0) & (FUNDABS.HH2 >= 0) &
+#                              (FUNDABS.KEEP_E == 1), 1, 0)
+
+FUNDABS_board = FUNDABS_desc[FUNDABS_desc.fyear <= 2007]
+a = ['gvkey', 'fyear', 'ind_dir_per_ISS']
+FUNDABS_board_s = FUNDABS_board[FUNDABS_board.fyear == 2001]
+FUNDABS_board_s = FUNDABS_board_s[FUNDABS_board_s['ind_dir_per_ISS'].notna()]
+FUNDABS_board_s['B-treat'] = np.where(FUNDABS_board_s.ind_dir_per_ISS < 0.5, 1, 0)
+FUNDABS_board_s['B-treat'].mean()
+FUNDABS_board_s['ind_dir_per_ISS'].mean()
+
+FUNDABS_board.groupby(['fyear'])[['ind_dir_per_ISS']].median()
+FUNDABS_board = pd.merge(FUNDABS_board, FUNDABS_board_s[['gvkey', 'B-treat']], left_on='gvkey', right_on='gvkey', how='left')
+
+
+FUNDABS_board = FUNDABS_descreg[FUNDABS_descreg.fyear <= 2005]
+FUNDABS_board = FUNDABS_board[FUNDABS_board.fyear >= 1996]
+FUNDABS_board = FUNDABS_board[FUNDABS_board['ind_dir_per_ISS'].notna()]
+a = ['gvkey', 'fyear', 'ind_dir_per_ISS']
+FUNDABS_board_s = FUNDABS_board[FUNDABS_board.fyear == 2001]
+FUNDABS_board_s = FUNDABS_board_s[FUNDABS_board_s['ind_dir_per_ISS'].notna()]
+FUNDABS_board_s['B-treat'] = np.where(FUNDABS_board_s.ind_dir_per_ISS <= 0.5, 1, 0)
+FUNDABS_board_s['B-treat'].mean()
+FUNDABS_board_s['ind_dir_per_ISS'].mean()
+
+FUNDABS_board.groupby(['fyear'])[['ind_dir_per_ISS']].median()
+FUNDABS_board = pd.merge(FUNDABS_board, FUNDABS_board_s[['gvkey', 'B-treat']], left_on='gvkey', right_on='gvkey', how='left')
+FUNDABS_board['b4'] = np.where(FUNDABS_board.fyear <= 2003, 1, 0)
+FUNDABS_board['afer'] = np.where(FUNDABS_board.fyear > 2003, 1, 0)
+FUNDABS_board['t-afer'] = FUNDABS_board['afer']*FUNDABS_board['B-treat']
+FUNDABS_board = FUNDABS_board[FUNDABS_board['B-treat'].notna()]
+FUNDABS_board['B-treat'].mean()
+FUNDABS_descreg = FUNDABS_board
+FUNDABS_descreg['b4'] =
+
+FUNDABS_descreg.groupby(['fyear'])[['DUALCLASS']].sum()

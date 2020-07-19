@@ -15,6 +15,16 @@ FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQ_GRPS-March12.csv.g
 FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABS_GRPS-March12.csv.gz"))
 
 
+FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQ_GRPS-March30ALL.csv.gz"))
+FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABS_GRPS-March30ALL.csv.gz"))
+
+FUNDABS_desc = pd.read_csv(os.path.join(datadirectory, "FUNDABSDESC-APRIL24ALL.csv.gz"))
+FUNDIQ_desc = pd.read_csv(os.path.join(datadirectory, "FUNDIQDESC-APRIL24ALL.csv.gz"))
+
+FUNDABS_desc = Functions.create_groups(FUNDABS_desc, 'fyear', "hostile_index_L1", 'HOST', grps=2)
+FUNDIQ_desc = Functions.create_groups(FUNDIQ_desc, 'fyear', "hostile_index_L1", 'HOST', grps=2)
+
+
 FUNDABS_desc['C/B'] = FUNDABS_desc['LJUNK']
 FUNDABS_desc['BBB/A'] = FUNDABS_desc['LIG']
 FUNDABS_desc['AA/AAA'] = FUNDABS_desc['HIG']
@@ -22,8 +32,27 @@ FUNDABS_desc['HHI-C8'] = FUNDABS_desc['HH1']
 FUNDABS_desc['HHI-C5'] = FUNDABS_desc['HH2']
 FUNDABS_desc['HH1_IQ'] = np.nan
 FUNDABS_desc['HH2_IQ'] = np.nan
+FUNDABS_desc['hostile_index_L1']
+a1= FUNDABS_desc[FUNDABS_desc.Medium == 1]
+b1 = FUNDABS_desc[FUNDABS_desc.Large == 1]
+c1 = FUNDABS_desc[FUNDABS_desc.Small == 1]
+Functions.plot_maker(['HHI-C5'], b1, b5, save=[0, dir_plots, "DIVP5"], year=1986, method='mean', label=1)
+Functions.plot_maker(['HHI-C8'], b1, b5, save=[0, dir_plots, "DIVP8"], year=1986, method='mean', label=0)
+Functions.plot_maker(['HHI-C5'], b1, b5, save=[0, dir_plots, "DIVP5"], year=1986, method='median', label=1)
+Functions.plot_maker(['HHI-C8'], b1, b5, save=[0, dir_plots, "DIVP8"], year=1986, method='median', label=0)
+a.groupby(['fyear'])[['UR']].mean()
+c=a1.groupby(['fyear'])[['UR','D', 'C', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA']].mean()
+c.groupby(['fyear'])[['UR','D', 'C', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA']].sum()
+c.to_csv(os.path.join(datadirectory, "c.csv"))
+FUNDABS_desc.groupby(['fyear'])[['UR']].mean()
+FUNDABS_desc.groupby(['fyear'])[['BB']].mean()
+FUNDABS_desc.groupby(['fyear'])[['BBB']].mean()
+FUNDABS_desc.groupby(['fyear'])[['A']].mean()
+FUNDABS_desc.groupby(['fyear'])[['HIG']].mean()
+mean5cat = FUNDABS_desc.groupby(['fyear'])[['DUALCLASS']].mean()
 
-
+FUNDABS_desc_s = FUNDABS_desc[['GIGRP_2', 'dual_ext', 'hostile_index_L1', 'EINDEX']]
+FUNDABS_desc_s.corr()
 FUNDIQ_desc['C/B'] = FUNDIQ_desc['LJUNK']
 FUNDIQ_desc['BBB/A'] = FUNDIQ_desc['LIG']
 FUNDIQ_desc['AA/AAA'] = FUNDIQ_desc['HIG']
@@ -33,6 +62,7 @@ FUNDIQ_desc['HHI-IQ7'] = FUNDIQ_desc['HH1_IQ']
 FUNDIQ_desc['HHI-IQ6'] = FUNDIQ_desc['HH2_IQ']
 FUNDIQ_desc['HHI-IQ7B'] = FUNDIQ_desc['HH1_IQB']
 FUNDIQ_desc['HHI-IQ6B'] = FUNDIQ_desc['HH2_IQB']
+
 
 FUNDIQSUR = FUNDIQ_desc[FUNDIQ_desc.UR == 1]
 FUNDIQLIG = FUNDIQ_desc[FUNDIQ_desc.LIG == 1]
@@ -85,7 +115,7 @@ FF.corr()
 #Make Table with the following characteristics:
 # Year mean median HHI-C5, HHI-C8, HHI-IQ7, Avg LVG, Median Levrage, Obs
 # Table 2 Description
-mean5cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C5']].mean()
+mean5cat = FUNDABS_desc.groupby(['fyear'])[['DUALCLASS']].mean()
 median5cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C5']].median()
 count8cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C5']].count()
 mean8cat = FUNDABS_desc.groupby(['fyear'])[['HHI-C8']].mean()
@@ -99,6 +129,11 @@ medianlev = FUNDABS_desc.groupby(['fyear'])[['BLEV']].median()
 combo = [mean5cat, median5cat, mean8cat, median8cat, mean7catIQ, median7catIQ, meanlev, medianlev] # , count8cat]
 table2 = pd.concat(combo, axis=1)
 print(table2.round(decimals=4))
+c = FUNDABS_desc[FUNDABS_desc['board-independence_2']==1]
+c1 = FUNDABS_desc[FUNDABS_desc['board-independence_2']==0]
+
+meanlev= c .groupby(['fyear'])[['ind_dir_per_ISS']].mean()
+c1.groupby(['fyear'])[['ind_dir_per_ISS']].mean()
 
 #UR
 
@@ -112,6 +147,8 @@ mean8cat = FUNDABSUR.groupby(['fyear'])[['HHI-C8']].mean()
 median8cat = FUNDABSUR.groupby(['fyear'])[['HHI-C8']].median()
 mean7catIQ = FUNDABSUR.groupby(['fyear'])[['HHI-IQ7']].mean()
 median7catIQ = FUNDABSUR.groupby(['fyear'])[['HHI-IQ7']].median()
+
+mean7catIQ = FUNDABSUR.groupby(['fyear'])[['HHI-IQ7']].mean()
 
 meanlev= FUNDABUR.groupby(['fyear'])[['BLEV']].mean()
 medianlev = FUNDABUR.groupby(['fyear'])[['BLEV']].median()
@@ -540,3 +577,6 @@ for index, elem in enumerate(b):
 new2 = pd.concat(result_temps, axis=0)
 print(new2)
 
+## Iwant a table for each sample, with observations for each variable
+
+## Want a table with different governance and other variables
